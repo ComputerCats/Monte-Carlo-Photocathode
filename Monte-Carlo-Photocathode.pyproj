@@ -1,0 +1,57 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>spectrum_makerK2CsSb.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>Monte-Carlo-Photocathode</Name>
+    <RootNamespace>Monte-Carlo-Photocathode</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Distributions.py" />
+    <Compile Include="electron.py" />
+    <Compile Include="ElTransport.py" />
+    <Compile Include="Geometry.py" />
+    <Compile Include="interface.py" />
+    <Compile Include="MonteCarlo.py" />
+    <Compile Include="MyScatterings.py" />
+    <Compile Include="MySimulation.py" />
+    <Compile Include="Semiconductor.py" />
+    <Compile Include="spectrum_makerK2CsSb.py" />
+    <Compile Include="tau_test.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_calc.py" />
+    <Compile Include="test_coor_dos.py" />
+    <Compile Include="test_dir.py" />
+    <Compile Include="test_energy_dos.py" />
+    <Compile Include="test_geom.py" />
+    <Compile Include="test_init_phase_prostr.py" />
+    <Compile Include="test_new_iter.py" />
+    <Compile Include="Visualization.py" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
