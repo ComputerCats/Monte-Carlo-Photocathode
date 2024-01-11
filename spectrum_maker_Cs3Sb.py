@@ -2,39 +2,19 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import sys
+sys.path.append(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode')
+
 import Geometry
 import MonteCarlo
 import electron as el
 import Distributions
 from scipy import interpolate
 import MyScatterings as scat
-
-sys.path.append(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode')
-
+import Validation as val
 import Visualization
 
-def make_file_coor_name(indx):
-
-    file_name_template = 'V_detector_f00'
-
-    if indx < 10:
-
-        file_name = f'{file_name_template}0{round(indx, 0)}.d'
-
-    else:
-
-        file_name = f'{file_name_template}{round(indx, 0)}.d'
-
-    return file_name
-
-def get_coor_DOS(way_to_coor_DOS, file_name):
-    way_to = f'{way_to_coor_DOS}\\{file_name}'
-    result = Distributions.make_coordinate_DOS(way_to)
-    
-    return result
-
-def get_coor_K2CsSb(gamma):
-    way_to = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\K2CsSb\alpha_K2CsSb.csv'
+def get_coor_Cs3Sb(gamma):
+    way_to = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\alpha_Cs3Sb.csv'
     data = pd.read_csv(way_to, sep = '; ').to_numpy()
 
     func = interpolate.interp1d(data[:, 0], data[:, 1])
@@ -68,51 +48,43 @@ def get_curr_gamma(way_to_coor_DOS, file_name):
 
     return gamma
 
-def get_R_func(way_to_coor_DOS):
-
-    flux_data = pd.read_csv(f'{way_to_coor_DOS}\\flux.d', sep = '\t').to_numpy()
-
-    flux_data[:, 0] = 1/flux_data[:, 0]*2*np.pi*3*1/(16)
-    reflection = flux_data[:, 1]/flux_data[:, 2]
-
-    func = interpolate.interp1d(flux_data[:, 0], reflection)
-
-    #func = lambda x: 0.2
+def get_R_func():
+    
+    func = lambda x: 0.2
 
     return func
 
 def plot_spectrum(way_to):
 
-    way_to = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode'
-    way_from = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode'
-    way_to_en_DOS = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\electronDOS.csv'
-    way_to_coor_DOS = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\fdtd\halfspace'
+    way_to = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\spectrums\Cs3Sb'
+    way_from = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\spectrums\Cs3Sb'
+    way_to_en_DOS = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv'
 
     N_electrons = 10000
     N_iterations = 10000
-    E_g = 1.2 #band gap
-    E_a = 0.7 #electron afinity
+    E_g = 1.6 #band gap
+    E_a = 0.3 #electron afinity
     delta_E = 0.027 #ev, phono energy
-    delta_E_DOS = 0.0001 #ev
+    delta_E_DOS = 0.002 #ev
     effective_mass = 0.12 #m/m_e
     dt = 20 #fs
     kill_energy = E_a/2 #ev
 
     fig, ax = plt.subplots()
 
-    N_energies = 16
+    N_energies = 1
 
-    R_func = get_R_func(way_to_coor_DOS)
-    
+    energyes = np.linspace(1.95, 2.6, N_energies)
+
+    R_func = get_R_func()
+
     results = np.zeros((N_energies, 2))
 
     for i in range(N_energies):
 
-        file_coor_name = make_file_coor_name(i)
-        gamma_cur = get_curr_gamma(way_to_coor_DOS, file_coor_name)
+        gamma_cur = energyes[i]
         print(f'gamma_cur = {gamma_cur}')
-        #coor_DOS = get_coor_DOS(way_to_coor_DOS, file_coor_name)
-        coor_DOS = get_coor_K2CsSb(gamma_cur)
+        coor_DOS = get_coor_Cs3Sb(gamma_cur)
         energy_DOS = Distributions.make_energy_DOS(way_to_en_DOS, E_g, gamma_cur, delta_E)
         
         electron = el.Electrons()
@@ -129,6 +101,14 @@ def plot_spectrum(way_to):
 
         geom = Geometry.HalfspaceGeom(np.array([0, 0, 0.512]), np.array([0, 0, 1]))
         task.set_geometry(geom)
+
+        validation = val.ValidateSim(task)
+
+        validation.plot_energy_DOS(r'\Validation\energy', energy_DOS)
+        validation.plot_coor_DOS(r'\Validation\coor', coor_DOS)
+        validation.plot_Z_electron_distr(r'Validation\distr', coor_DOS)
+        validation.plot_initial_energy_distr(r'Validation\distr', energy_DOS[:, 0])
+
         task.run_simulation()
 
         refl = R_func(gamma_cur)
@@ -151,8 +131,8 @@ def plot_ready_results(file_name):
     with open(f'{file_name}.npy', 'rb') as f:
         result = np.load(f)
 
-    Visualization.compare_with_exp(result)
+    Visualization.compare_with_exp(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\ExpCs3Sb.csv', result)
 
 E_photon_interval = np.linspace(1.95, 3, 10)
-plot_spectrum(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode')
+#plot_spectrum(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode')
 plot_ready_results('result_spectr1')

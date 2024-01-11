@@ -56,14 +56,12 @@ def plot_coor_distr(name_pict, electron_gas):
     ax.set_ylabel('N electrons')
     ax.set_xlabel('Z')
 
-    plt.savefig(f'{name_pict}.png')
+    fig.savefig(f'{name_pict}.png')
 
 def plot_initial_energy_distr(name_pict, electron_gas, all_energies):
 
-    dE = 0.05
-
     fig, ax = plt.subplots()
-
+    
     N_electrons = all_energies.shape[0]
 
     result = np.zeros((N_electrons, 2))
@@ -82,16 +80,28 @@ def plot_initial_energy_distr(name_pict, electron_gas, all_energies):
     ax.set_ylabel('N electrons')
     ax.set_xlabel('E, ev')
 
-    plt.savefig(f'{name_pict}.png')
+    fig.savefig(f'{name_pict}.png')
 
-def compare_with_exp(QE):
+def plot_coor_dos(file_name, coor_dos):
 
-    exp_data = pd.read_csv(r'experiment\K2CsSb\ExpK2CsSb.csv', header = None, sep = '; ').to_numpy()
+    fig, ax = plt.subplots()
+
+    ax.plot(coor_dos[:, 2], coor_dos[:, 3])
+
+    ax.grid()
+    ax.set_xlabel('z, $\mu$')
+    ax.set_ylabel('Coor DOS')
+
+    fig.savefig(f'{file_name}')
+
+def compare_with_exp(way_to, QE):
+
+    exp_data = pd.read_csv(way_to, header = None, sep = '; ').to_numpy()
 
     fig, ax = plt.subplots()
 
     ax.plot(QE[:, 0], 100*QE[:, 1], label = 'Monte Carlo', color = 'red')
-    ax.plot(exp_data[:, 0], exp_data[:, 1], label = 'Experiment', color = 'blue')
+    ax.scatter(exp_data[:, 0], exp_data[:, 1], label = 'Experiment', color = 'blue')
 
     ax.grid()
     ax.set_xlabel('$\hbar\omega$')

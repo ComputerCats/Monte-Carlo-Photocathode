@@ -39,5 +39,24 @@ def test_make_energy_DOS(way_to):
     plt.ylabel('DOS')
     plt.savefig('energy_dos.png')
 
+def test_make_energy_DOS_Cs3Sb():
+
+    way_to_en_DOS = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv'
+
+    E_g = 1.6 #band gap
+    delta_E = 0.001
+
+    energy_DOS = Distributions.make_energy_DOS_Cs3Sb(way_to_en_DOS, E_g, 1.95, delta_E)
+
+    print(f'result_DOS = {energy_DOS}')
+    print(f'norm must be equal 1, curr sum = {np.cumsum(energy_DOS[:, -1], axis = 0)[-1]}')
+
+    plt.plot(energy_DOS[:, 0], energy_DOS[:, 1])
+    plt.grid()
+    plt.xlabel('Energy above cond band')
+    plt.ylabel('DOS')
+    plt.savefig('energy_dos.png')
+
 #test_make_energy_DOS(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
-test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
+#test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
+test_make_energy_DOS_Cs3Sb()

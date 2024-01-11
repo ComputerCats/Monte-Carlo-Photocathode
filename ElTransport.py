@@ -20,36 +20,47 @@ def make_new_coor(electron_gas, dt, effective_mass):
 
 def _make_p_mass(E, dt, tau):
 
+    p = 1 - np.exp(-dt/tau(E))
+
     if tau(E) <= 0:
         
-        raise 'Tau must be greater then 0'
+        raise ValueError('Tau must be greater then 0')
 
-    if tau(E) >= 1:
+    if p >= 1:
         
-        raise 'dt/tau must be less then 1'
-
-    p = dt/tau(E)
+        raise ValueError('dt/tau must be less then 1')
 
     return [p, 1-p]
 
-# refactor
-def make_new_energy(electron_gas, tau_mass, E_mass, dt):
+def make_scatterings(electron_gas, tau_mass, E_mass, dt):
 
     N_electrons = electron_gas[:, 0].shape[0]
+    N_tau = len(tau_mass)
 
     for i in range(N_electrons):
 
-        for j in range(len(tau_mass)):
+        for j in range(N_tau):
 
-            p_mass = _make_p_mass(electron_gas[j, -1], dt, tau_mass[j])
+            p_mass = _make_p_mass(electron_gas[i, -1], dt, tau_mass[j])
 
-            delta_E = np.random.choice([E_mass[j], 0], p = p_mass)
+            is_scattering = np.random.choice([True, False], p = p_mass)
 
-            electron_gas[i, -1] =  electron_gas[i, -1] + delta_E
+            if is_scattering:
+
+                electron_gas[i, -1] =  electron_gas[i, -1] + E_mass[j]
+
+                electron_gas[i, :] = _make_new_dir(electron_gas[i, :])
 
     return electron_gas
 
-def make_new_dir(electron_gas):
+def _make_new_dir(electron_gas):
+
+    electron_gas[3] = 2*np.pi*np.random.rand()
+    electron_gas[4] = np.pi*np.random.rand()
+
+    return electron_gas
+
+def initial_dir(electron_gas):
 
     N_electrons = electron_gas.shape[0]
 

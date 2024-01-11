@@ -3,7 +3,7 @@ import numpy as np
 #semiconductor propeties
 E_G_CONST = 1.2
 T_SEMICONDUCTOR = 300
-DELTA_EPSILON = (1/5-1/8.2)#(1/6.11-1/14.02) #
+DELTA_EPSILON = (1/5-1/8.2)#(1/6-1/14)
 DELTA_E_POP_PLUS = 0.027
 DELTA_E_POP_MINUS = 0.027
 EFFECTIVE_MASS = 0.12

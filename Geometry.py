@@ -95,8 +95,8 @@ class HalfspaceGeom:
 
             return 'Reflect'
 
-    def get_cos_angle(self, direction): #return cos for external normal
-        angle = direction[1]
+    def get_cos_angle(self, electron): #return cos for external normal
+        angle = electron[4]
         result = -np.cos(angle)
 
         return result

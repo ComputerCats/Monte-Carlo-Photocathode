@@ -4,6 +4,7 @@ from scipy import interpolate
 import Geometry
 import Distributions
 import ElTransport
+import Validation as val
 
 EXIT_STATUS = Geometry.STATUS
 
@@ -15,12 +16,11 @@ def p_exit(E, E_a, cos_angle):
 
         return 0
 
-    if (E_exit <= E_a) or (np.sqrt(E_a/E) < cos_angle):
+    is_exit = (p.sqrt(E_a/E) < cos_angle)
 
-        return 0
-
-    result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
-    return result
+    return is_exit
+    #result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
+    #return result
 
 
 def make_calc_log(i, N_iterations, Curr_n_electrons, exited_electrons, initial_electrons):
@@ -41,10 +41,19 @@ class Simulation:
         self.way_to = way_to
         self.gamma = gamma
 
-        self.scatterings_p = []
+        self.scatterings_tau = []
         self.scatterings_E = []
 
         self._init_log_mass()
+
+    def set_validation(self):
+
+        self.validation = True
+        self.history_electron_states = []
+
+    def get_val_hitory_states(self):
+
+        return np.array(self.history_electron_states)
 
     def _init_log_mass(self):
 
@@ -79,25 +88,6 @@ class Simulation:
         self.scatterings_tau.append(tau)
         self.scatterings_E.append(delta_E)
 
-    def _prepare_scat(self):
-
-        all_scatt_prop = 0
-
-        for x in self.scatterings_p:
-
-            all_scatt_prop += x
-
-        if x > 1:
-
-            raise Exception('Propability of scattering > 1. Check your dt and tau\'s')
-
-        prop_zero_scat = 1-all_scatt_prop
-
-        #zero scat
-        self.scatterings_p.append(prop_zero_scat)
-        self.scatterings_E.append(0)
-
-
     def set_geometry(self, geometry):
 
         self.geometry = geometry
@@ -109,7 +99,7 @@ class Simulation:
         #coor_DOS = columns: (x, y, z, propability)
 
         self.electron_gas = np.zeros((self.initial_N_electrons, 6))
-        self.electron_gas = ElTransport.make_new_dir(self.electron_gas)
+        self.electron_gas = ElTransport.initial_dir(self.electron_gas)
 
         numbers_of_position = range(0, coor_DOS.shape[0])
 
@@ -127,8 +117,6 @@ class Simulation:
 
     def run_simulation(self):
 
-        self._prepare_scat()
-
         self.exit_electron = 0
 
         for i in range(self.N_iterations):
@@ -144,7 +132,7 @@ class Simulation:
             #Visualization.plot_E_distr(str(i), self.electron_gas)
             self._run_new_iteration()
 
-    def exit_and_kill(self, electron_gas):
+    def exit_and_kill(self):
 
         N_electrons = self.electron_gas.shape[0]
 
@@ -155,7 +143,7 @@ class Simulation:
             status = self.geometry.get_status(self.electron_gas[i, :3])
 
             if status == EXIT_STATUS['Exit']:
-                prop_exit = p_exit(self.electron_gas[i, -1], self.electron.E_a, self.geometry.get_cos_angle([self.electron_gas[i, 3], self.electron_gas[i, 4]]))
+                prop_exit = p_exit(self.electron_gas[i, -1], self.electron.E_a, self.geometry.get_cos_angle(self.electron_gas[i, :]))
                 is_exit = np.random.choice([False, True], p = [1-prop_exit, prop_exit])
 
                 if is_exit:
@@ -175,11 +163,13 @@ class Simulation:
 
     def _run_new_iteration(self):
 
+        if self.validation:
+            self.history_electron_states.append(self.electron_gas[0])
+
         self.kill_low_energy_electrons(self.kill_energy)
         self.electron_gas = ElTransport.make_new_coor(self.electron_gas, self.dt, self.electron.effective_mass)
-        self.electron_gas = ElTransport.make_new_dir(self.electron_gas)
-        self.electron_gas = ElTransport.make_new_energy(self.electron_gas, self.scatterings_tau, self.scatterings_E)
-        self.electron_gas = self.exit_and_kill(self.electron_gas)
+        self.electron_gas = ElTransport.make_scatterings(self.electron_gas, self.scatterings_tau, self.scatterings_E, self.dt)
+        self.exit_and_kill()
 
     def get_results(self):
 
