@@ -30,7 +30,7 @@
     <Compile Include="interface.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
-    <Compile Include="tau_test.py">
+    <Compile Include="test_tau.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_calc.py" />

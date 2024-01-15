@@ -16,11 +16,16 @@ def p_exit(E, E_a, cos_angle):
 
         return 0
 
-    is_exit = (p.sqrt(E_a/E) < cos_angle)
+    if (np.sqrt(E_a/E) < cos_angle) and (E_exit > E_a):
 
-    return is_exit
-    #result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
-    #return result
+        result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
+
+        return result
+
+    else:
+
+        return 0
+
 
 
 def make_calc_log(i, N_iterations, Curr_n_electrons, exited_electrons, initial_electrons):
@@ -46,10 +51,13 @@ class Simulation:
 
         self._init_log_mass()
 
+        self.validation = False
+
+        self.history_electron_states = []
+
     def set_validation(self):
 
         self.validation = True
-        self.history_electron_states = []
 
     def get_val_hitory_states(self):
 
@@ -152,6 +160,7 @@ class Simulation:
 
                     #important string!!!
                     self.exit_electron += 1
+
                 else:
                     self.electron_gas[i, 3:5] = self.geometry.reflect(self.electron_gas[i, 3:5])
 
@@ -164,7 +173,8 @@ class Simulation:
     def _run_new_iteration(self):
 
         if self.validation:
-            self.history_electron_states.append(self.electron_gas[0])
+
+            self.history_electron_states.append(self.electron_gas[0, :])
 
         self.kill_low_energy_electrons(self.kill_energy)
         self.electron_gas = ElTransport.make_new_coor(self.electron_gas, self.dt, self.electron.effective_mass)

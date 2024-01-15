@@ -97,6 +97,9 @@ def test_plot_electron_history():
         task.set_geometry(geom)
 
         validation = val.ValidateSim(task)
+        validation.plot_energy_DOS(energy_DOS)
+        validation.plot_initial_energy_distr(energy_DOS[:, 0])
+
         task.set_validation()
 
         task.run_simulation()

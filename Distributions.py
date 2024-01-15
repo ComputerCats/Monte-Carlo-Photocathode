@@ -9,7 +9,7 @@ def _make_electron_DOS(way_to, E_g, sep_file = '; '):
 
     electron_dos = pd.read_csv(way_to, sep = sep_file, header = None)
     electron_dos.iloc[:, 1] = electron_dos.iloc[:, 1] 
-    energyes = electron_dos.iloc[:, 0].to_numpy() - E_g
+    energyes = electron_dos.iloc[:, 0].to_numpy() - E_g/2
     dos = np.abs(electron_dos.iloc[:, 1].to_numpy())
     func = interpolate.interp1d(energyes, dos)
 
