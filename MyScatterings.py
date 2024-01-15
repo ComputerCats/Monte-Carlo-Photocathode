@@ -29,3 +29,23 @@ def tau_POP_minus(E):
     veloisity_reaction = 100*CONST_PART_TAU_POP*(_Bose_Distr(DELTA_E_POP_PLUS)+1)*DELTA_EPSILON*np.sqrt(EFFECTIVE_MASS/(2*E*1.6))*logarithm_part
 
     return 1/veloisity_reaction
+
+class Semiconductor:
+
+    def __init__(self, E_a, E_g, effective_mass):
+
+        self.E_a = E_a
+        self.E_g = E_g
+        self.effective_mass = effective_mass
+
+    def get_E_a(self):
+
+        return self.E_a
+
+    def get_E_g(self):
+
+        return self.E_g
+
+    def get_effective_mass(self):
+
+        return self.effective_mass

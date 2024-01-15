@@ -5,33 +5,14 @@ import Geometry
 import Distributions
 import ElTransport
 import Validation as val
+import electron
+import ElectronExit
 
 EXIT_STATUS = Geometry.STATUS
 
-def p_exit(E, E_a, cos_angle):
+def make_calc_log(i, exited_electrons, initial_electrons):
 
-    E_exit = E*cos_angle*cos_angle
-
-    if E <= 0:
-
-        return 0
-
-    if (np.sqrt(E_a/E) < cos_angle) and (E_exit > E_a):
-
-        result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
-
-        return result
-
-    else:
-
-        return 0
-
-
-
-def make_calc_log(i, N_iterations, Curr_n_electrons, exited_electrons, initial_electrons):
-
-    print(f'Calculation progress: {i/N_iterations}')
-    print(f'Count of electron in volume: {Curr_n_electrons}')
+    print(f'Calculation progress: {i/initial_electrons}')
     print(f'Curr Yield: {exited_electrons/initial_electrons}')
 
 
@@ -51,14 +32,6 @@ class Simulation:
 
         self._init_log_mass()
 
-        self.validation = False
-
-        self.history_electron_states = []
-
-    def set_validation(self):
-
-        self.validation = True
-
     def get_val_hitory_states(self):
 
         return np.array(self.history_electron_states)
@@ -71,16 +44,9 @@ class Simulation:
 
         self.mass_str_log.append(other_str)
 
-    def set_electron(self, electron):
+    def set_semiconductor(self, semiconductor):
 
-        self.electron = electron
-
-        self._add_str_to_log(self.electron.get_log())
-
-    def _init_distributions(self, way_to_en_DOS, way_to_coor_DOS):
-
-        self.energyes_DOS = Distributions._make_energy_DOS(way_to_en_DOS, self.electron.E_g, self.gamma, self.electron.delta_E_DOS)
-        self.pos_DOS = Distributions._make_coordinate_DOS(way_to_coor_DOS)
+        self.semiconductor = semiconductor
 
     #dt fs
     def set_calc_params(self, dt, N, N_iterations, kill_energy):
@@ -100,86 +66,62 @@ class Simulation:
 
         self.geometry = geometry
     
-    def initial_phase_prostr(self, energy_DOS, coor_DOS, data_type = '1d'):
+    def initial_process(self, energy_DOS, coor_DOS):
 
-        #electron gas columns = [x, y, z, phi (0, 2pi), psi (0, pi), E]
+        #electron columns = [x, y, z, phi (0, 2pi), psi (0, pi), E]
         #energy_DOS = columns: (energy, propability)
         #coor_DOS = columns: (x, y, z, propability)
 
-        self.electron_gas = np.zeros((self.initial_N_electrons, 6))
-        self.electron_gas = ElTransport.initial_dir(self.electron_gas)
-
         numbers_of_position = range(0, coor_DOS.shape[0])
 
-        for i in range(self.initial_N_electrons):
+        #prepare positions
+        indx_pos = np.random.choice(numbers_of_position, p=coor_DOS[:, -1].reshape(1, -1)[0])
 
-            #set positions
-            indx_pos = np.random.choice(numbers_of_position, p=coor_DOS[:, -1].reshape(1, -1)[0])
-
-            #set energyes
-            self.electron_gas[i, :3] = coor_DOS[indx_pos,:3]
-            self.electron_gas[i, 5] = np.random.choice(energy_DOS[:,0], p=energy_DOS[:,1])
+        #set energyes, dir and coor
+        coor = coor_DOS[indx_pos,:3]
+        energy = np.random.choice(energy_DOS[:,0], p=energy_DOS[:,1])
+        direction = ElTransport.make_initial_dir()
 
         #Visualization.plot_coor_distr(r'distr\initial_electon_coor_distr', self.electron_gas)
         #Visualization.plot_initial_energy_distr(r'distr\initial_electon_energy_distr', self.electron_gas, self.energyes_DOS[:,0])
 
-    def run_simulation(self):
+        single_electron = electron.Electrons(coor[0], coor[1], coor[2], direction[0], direction[1], energy)
+
+        return single_electron
+
+    def run_simulation(self, energy_DOS, coor_DOS):
 
         self.exit_electron = 0
 
-        for i in range(self.N_iterations):
+        for i in range(self.initial_N_electrons):
 
-            Curr_n_electrons = self.electron_gas.shape[0]
-
-            make_calc_log(i, self.N_iterations, Curr_n_electrons, self.exit_electron, self.initial_N_electrons)
-
-            if Curr_n_electrons == 0:
-                break
+            make_calc_log(i, self.exit_electron, self.initial_N_electrons)
 
             #Visualization.plot_x_distr(str(i), self.electron_gas)
             #Visualization.plot_E_distr(str(i), self.electron_gas)
-            self._run_new_iteration()
+            self._run_new_iteration(energy_DOS, coor_DOS)
 
-    def exit_and_kill(self):
+    def kill_low_energy_electrons(self, single_electron, kill_energy):
 
-        N_electrons = self.electron_gas.shape[0]
+        return single_electron.get_E > kill_energy
 
-        kill_list = []
+    def _run_new_iteration(self, energy_DOS, coor_DOS):
 
-        for i in range(N_electrons):
+        single_electron = self.initial_process(energy_DOS, coor_DOS)
 
-            status = self.geometry.get_status(self.electron_gas[i, :3])
+        for i in range(self.N_iterations):
 
-            if status == EXIT_STATUS['Exit']:
-                prop_exit = p_exit(self.electron_gas[i, -1], self.electron.E_a, self.geometry.get_cos_angle(self.electron_gas[i, :]))
-                is_exit = np.random.choice([False, True], p = [1-prop_exit, prop_exit])
+            if self.kill_low_energy_electrons(single_electron, self.kill_energy):
+                
+                break
 
-                if is_exit:
+            ElTransport.transport_process(single_electron, self.tau_mass, self.E_mass, self.dt)
+            
+            if ElectronExit.exit_process(self.geom, single_electron):
 
-                    kill_list.append(i)
+                self.exit_electron += 1
+                break
 
-                    #important string!!!
-                    self.exit_electron += 1
-
-                else:
-                    self.electron_gas[i, 3:5] = self.geometry.reflect(self.electron_gas[i, 3:5])
-
-        self.electron_gas = np.delete(self.electron_gas, kill_list, axis = 0)
-
-    def kill_low_energy_electrons(self, kill_energy):
-
-        self.electron_gas = self.electron_gas[self.electron_gas[:, -1] > kill_energy, :]
-
-    def _run_new_iteration(self):
-
-        if self.validation:
-
-            self.history_electron_states.append(self.electron_gas[0, :])
-
-        self.kill_low_energy_electrons(self.kill_energy)
-        self.electron_gas = ElTransport.make_new_coor(self.electron_gas, self.dt, self.electron.effective_mass)
-        self.electron_gas = ElTransport.make_scatterings(self.electron_gas, self.scatterings_tau, self.scatterings_E, self.dt)
-        self.exit_and_kill()
 
     def get_results(self):
 
