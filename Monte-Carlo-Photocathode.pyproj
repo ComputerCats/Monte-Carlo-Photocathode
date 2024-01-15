@@ -25,6 +25,7 @@
   <ItemGroup>
     <Compile Include="Distributions.py" />
     <Compile Include="electron.py" />
+    <Compile Include="ElectronExit.py" />
     <Compile Include="ElTransport.py" />
     <Compile Include="Geometry.py" />
     <Compile Include="interface.py" />

@@ -79,11 +79,12 @@ class HalfspaceGeom:
 
     #make_reflation
 
-    def reflect(self, electron_veloisity):
+    def reflect(self, single_electron):
 
-        electron_veloisity[1] = np.pi - electron_veloisity[1]
+        old_dir = single_electron.get_dir()
+        new_dir = np.array([old_dir[0], np.pi - old_dir[1]])
 
-        return electron_veloisity
+        single_electron.set_dir(new_dir)
 
     def get_status(self, point):
 

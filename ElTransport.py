@@ -2,24 +2,23 @@ import numpy as np
 
 # life of electron: (x, y, z, psi, theta, E) -> phonon scattering (change angle, change coor, change energy) -> new iter
 
-def get_electron_veloicity(energy, effective_mass):
 
-    return 0.001*np.sqrt(energy*2*1.6/(effective_mass*9.1))
+def _make_new_coor(single_electron, dt): 
 
-def make_new_coor(electron_gas, dt, effective_mass): 
+    l_E = single_electron.get_veloicity()*dt
 
-    l_E = get_electron_veloicity(electron_gas[:, -1], effective_mass)*dt
+    curr_dir = single_electron.get_dir()
 
-    cos_theta_mass = np.cos(electron_gas[:, 4])
-    sin_theta_mass = np.sin(electron_gas[:, 4])
-    sin_psi_mass = np.sin(electron_gas[:, 3])
-    cos_psi_mass = np.cos(electron_gas[:, 3])
+    cos_theta_mass = np.cos(curr_dir[1])
+    sin_theta_mass = np.sin(curr_dir[1])
+    sin_psi_mass = np.sin(curr_dir[0])
+    cos_psi_mass = np.cos(curr_dir[0])
 
-    electron_gas[:, 0] += l_E*sin_theta_mass*cos_psi_mass
-    electron_gas[:, 1] += l_E*sin_theta_mass*sin_psi_mass
-    electron_gas[:, 2] += l_E*cos_theta_mass
+    dx = l_E*sin_theta_mass*cos_psi_mass
+    dy = l_E*sin_theta_mass*sin_psi_mass
+    dz = l_E*cos_theta_mass
 
-    return electron_gas
+    single_electron.add_coor(np.array([dx, dy, dz]))
 
 def _make_p_mass(E, dt, tau):
 
@@ -35,41 +34,38 @@ def _make_p_mass(E, dt, tau):
 
     return [p, 1-p]
 
-def make_scatterings(electron_gas, tau_mass, E_mass, dt):
+def _make_scatterings(single_electron, tau_mass, E_mass, dt):
 
-    N_electrons = electron_gas[:, 0].shape[0]
     N_tau = len(tau_mass)
 
-    for i in range(N_electrons):
+    for j in range(N_tau):
 
-        for j in range(N_tau):
+        p_mass = _make_p_mass(single_electron.get_E(), dt, tau_mass[j])
 
-            p_mass = _make_p_mass(electron_gas[i, -1], dt, tau_mass[j])
+        is_scattering = np.random.choice([True, False], p = p_mass)
 
-            is_scattering = np.random.choice([True, False], p = p_mass)
+        if is_scattering:
 
-            if is_scattering:
+            single_electron.add_energy(E_mass[j])
 
-                electron_gas[i, -1] =  electron_gas[i, -1] + E_mass[j]
+            _make_new_dir(single_electron)
 
-                electron_gas[i, :] = _make_new_dir(electron_gas[i, :])
+def _make_new_dir(single_electron):
 
-    return electron_gas
+    new_psi = 2*np.pi*np.random.rand()
+    new_theta = np.pi*np.random.rand()
 
-def _make_new_dir(electron_gas):
+    single_electron.set_dir(np.array([new_psi, new_theta]))
 
-    electron_gas[3] = 2*np.pi*np.random.rand()
-    electron_gas[4] = np.pi*np.random.rand()
+def make_initial_dir():
 
-    return electron_gas
+    new_psi = 2*np.pi*np.random.rand()
+    new_theta = np.pi*np.random.rand()
 
-def initial_dir(electron_gas):
+    return np.array([new_psi, new_theta])
 
-    N_electrons = electron_gas.shape[0]
+def transport_process(single_electron, tau_mass, E_mass, dt):
 
-    electron_gas[:, 3:5] = np.random.rand(N_electrons, 2)
+    _make_new_coor(single_electron, dt)
+    _make_scatterings(single_electron, tau_mass, E_mass, dt)
 
-    electron_gas[:, 3] = 2*np.pi*electron_gas[:, 3]
-    electron_gas[:, 4] = np.pi*electron_gas[:, 4]
-
-    return electron_gas
