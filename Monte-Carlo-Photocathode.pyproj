@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_all.py</StartupFile>
+    <StartupFile>test_energy_dos.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

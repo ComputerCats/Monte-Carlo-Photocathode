@@ -60,6 +60,6 @@ def test_make_energy_DOS_Cs3Sb():
     plt.ylabel('DOS')
     plt.savefig('energy_dos.png')
 
-test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
+test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\K2CsSb\K2CsSb_DOS.csv')
 #test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
 #test_make_energy_DOS_Cs3Sb()

@@ -131,7 +131,7 @@ class Simulation:
 
         for i in range(self.N_iterations):
 
-            ElTransport.transport_process(single_electron, self.scatterings_tau, self.scatterings_E, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
+            ElTransport.transport_process(single_electron, self.scatterings_tau, self.scatterings_E, self.dt)
 
             if self.kill_low_energy_electrons(single_electron, self.kill_energy):
                 
