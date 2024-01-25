@@ -2,7 +2,6 @@ import numpy as np
 
 # life of electron: (x, y, z, psi, theta, E) -> phonon scattering (change angle, change coor, change energy) -> new iter
 
-
 def _make_new_coor(single_electron, dt): 
 
     l_E = single_electron.get_veloicity()*dt
@@ -34,9 +33,22 @@ def _make_p_mass(E, dt, tau):
 
     return [p, 1-p]
 
-def _make_scatterings(single_electron, tau_mass, E_mass, dt):
+def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
+
+    p = 1 - np.exp(-single_electron.get_veloicity()*dt/l_e_e(single_electron.get_E()))
+
+    if p >= 1:
+        
+        raise ValueError('dt/tau must be less then 1')
+
+    return [p, 1-p]
+
+def _make_scatterings(single_electron, tau_mass, E_mass, dt, l_e_e_mass = [], E_e_e_mass = []):
 
     N_tau = len(tau_mass)
+    N_l = len(l_e_e_mass)
+    
+    do_new_dir = False
 
     for j in range(N_tau):
 
@@ -48,7 +60,23 @@ def _make_scatterings(single_electron, tau_mass, E_mass, dt):
 
             single_electron.add_energy(E_mass[j])
 
-            _make_new_dir(single_electron)
+            do_new_dir = True
+
+    for j in range(N_l):
+
+        p_mass = _make_p_mass_l_e_e(single_electron, l_e_e_mass[j], dt)
+
+        is_scattering = np.random.choice([True, False], p = p_mass)
+
+        if is_scattering:
+
+            single_electron.add_energy(E_e_e_mass[j])
+
+            do_new_dir = True
+
+    if do_new_dir:
+
+        _make_new_dir(single_electron)
 
 def _make_new_dir(single_electron):
 
@@ -64,8 +92,16 @@ def make_initial_dir():
 
     return np.array([new_psi, new_theta])
 
-def transport_process(single_electron, tau_mass, E_mass, dt):
+def reflcation_process(geom, single_electron):
+
+    new_coor = geom.get_new_point_after_reflect(single_electron.get_prostr_coor(), single_electron.get_dir())
+    new_dir = geom.get_new_dir_after_reflect(single_electron.get_dir())
+    single_electron.set_coor(new_coor)
+    single_electron.set_dir(new_dir)
+
+def transport_process(single_electron, tau_mass, E_mass, dt, l_e_e_mass, E_e_e_mass):
 
     _make_new_coor(single_electron, dt)
-    _make_scatterings(single_electron, tau_mass, E_mass, dt)
+    _make_scatterings(single_electron, tau_mass, E_mass, dt, l_e_e_mass, E_e_e_mass)
+    
 

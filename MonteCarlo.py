@@ -1,12 +1,11 @@
 import numpy as np
 import pandas as pd
-from scipy import interpolate
 import Geometry
-import Distributions
 import ElTransport
 import Validation as val
 import electron
 import ElectronExit
+import Visualization
 
 EXIT_STATUS = Geometry.STATUS
 
@@ -14,7 +13,6 @@ def make_calc_log(i, exited_electrons, initial_electrons):
 
     print(f'Calculation progress: {i/initial_electrons}')
     print(f'Curr Yield: {exited_electrons/initial_electrons}')
-
 
 class Simulation:
 
@@ -27,9 +25,7 @@ class Simulation:
         self.way_to = way_to
         self.gamma = gamma
 
-        self.scatterings_tau = []
-        self.scatterings_E = []
-
+        self._init_scat_mass()
         self._init_log_mass()
 
     def get_val_hitory_states(self):
@@ -40,6 +36,13 @@ class Simulation:
 
         self.mass_str_log = []
 
+    def _init_scat_mass(self):
+
+        self.scatterings_tau = []
+        self.scatterings_E = []
+        self.scatterings_l_e_e = []
+        self.scatterings_E_l_e_e = []
+
     def _add_str_to_log(self, other_str):
 
         self.mass_str_log.append(other_str)
@@ -47,6 +50,11 @@ class Simulation:
     def set_semiconductor(self, semiconductor):
 
         self.semiconductor = semiconductor
+
+    def set_DOS(self, energy_DOS, coor_DOS):
+
+        self.energy_DOS = energy_DOS
+        self.coor_DOS = coor_DOS
 
     #dt fs
     def set_calc_params(self, dt, N, N_iterations, kill_energy):
@@ -62,34 +70,40 @@ class Simulation:
         self.scatterings_tau.append(tau)
         self.scatterings_E.append(delta_E)
 
+    def add_l_e_e_scattering(self, l_e_e, delta_E):
+
+        self.scatterings_l_e_e.append(l_e_e)
+        self.scatterings_E_l_e_e.append(delta_E)
+
     def set_geometry(self, geometry):
 
         self.geometry = geometry
     
-    def initial_process(self, energy_DOS, coor_DOS):
+    def initial_process(self):
 
         #electron columns = [x, y, z, phi (0, 2pi), psi (0, pi), E]
         #energy_DOS = columns: (energy, propability)
         #coor_DOS = columns: (x, y, z, propability)
 
-        numbers_of_position = range(0, coor_DOS.shape[0])
+        numbers_of_position = range(0, self.coor_DOS.shape[0])
 
         #prepare positions
-        indx_pos = np.random.choice(numbers_of_position, p=coor_DOS[:, -1].reshape(1, -1)[0])
+        indx_pos = np.random.choice(numbers_of_position, p=self.coor_DOS[:, -1].reshape(1, -1)[0])
 
         #set energyes, dir and coor
-        coor = coor_DOS[indx_pos,:3]
-        energy = np.random.choice(energy_DOS[:,0], p=energy_DOS[:,1])
+        coor = self.coor_DOS[indx_pos,:3]
+        energy = np.random.choice(self.energy_DOS[:,0], p=self.energy_DOS[:,1])
         direction = ElTransport.make_initial_dir()
 
         #Visualization.plot_coor_distr(r'distr\initial_electon_coor_distr', self.electron_gas)
         #Visualization.plot_initial_energy_distr(r'distr\initial_electon_energy_distr', self.electron_gas, self.energyes_DOS[:,0])
 
         single_electron = electron.Electrons(coor[0], coor[1], coor[2], direction[0], direction[1], energy)
+        single_electron.set_electron_propities(self.semiconductor.get_effective_mass())
 
         return single_electron
 
-    def run_simulation(self, energy_DOS, coor_DOS):
+    def run_simulation(self):
 
         self.exit_electron = 0
 
@@ -97,31 +111,38 @@ class Simulation:
 
             make_calc_log(i, self.exit_electron, self.initial_N_electrons)
 
-            #Visualization.plot_x_distr(str(i), self.electron_gas)
-            #Visualization.plot_E_distr(str(i), self.electron_gas)
-            self._run_new_iteration(energy_DOS, coor_DOS)
+            self._run_new_iteration()
 
     def kill_low_energy_electrons(self, single_electron, kill_energy):
 
-        return single_electron.get_E > kill_energy
+        if single_electron.get_E() < kill_energy:
 
-    def _run_new_iteration(self, energy_DOS, coor_DOS):
+            return True
 
-        single_electron = self.initial_process(energy_DOS, coor_DOS)
+        else:
+
+            return False
+
+    def _run_new_iteration(self):
+
+        single_electron = self.initial_process()
+
+        if self.kill_low_energy_electrons(single_electron, self.kill_energy): return
 
         for i in range(self.N_iterations):
+
+            ElTransport.transport_process(single_electron, self.scatterings_tau, self.scatterings_E, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
 
             if self.kill_low_energy_electrons(single_electron, self.kill_energy):
                 
                 break
 
-            ElTransport.transport_process(single_electron, self.tau_mass, self.E_mass, self.dt)
+            is_out = ElectronExit.exit_process(self.geometry, single_electron, self.semiconductor)
             
-            if ElectronExit.exit_process(self.geom, single_electron):
+            if is_out:
 
                 self.exit_electron += 1
                 break
-
 
     def get_results(self):
 

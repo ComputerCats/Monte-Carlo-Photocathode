@@ -27,6 +27,18 @@ def plot_E_distr(name_pict, electron_gas):
 
     plt.savefig(f'E_slide={name_pict}.png')
 
+def plot_energy_history(name_pict, history_energy, gamma, E_g):
+
+    fig, ax = plt.subplots()
+
+    ax.plot(history_energy[:, 0], history_energy[:, 1], color = 'red', label = f'gamma = {gamma}, E_g = {E_g}')
+    ax.legend()
+    ax.grid()
+    ax.set_xlabel('Time, fs')
+    ax.set_ylabel('Energy, eV')
+
+    plt.savefig(f'{name_pict}.png')
+
 def plot_coor_distr(name_pict, electron_gas):
 
     dz = 0.003
