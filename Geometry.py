@@ -4,7 +4,7 @@ import numpy as np
 import scipy.integrate as integrate
 #a geometry class for Monte Carlo simulation. a convex body is defined by the intersection of planes 
 
-STATUS = {'Exit': 'Exit','Inside': 'Inside','Reflect': 'Reflect','~reflect': '~reflect'}
+STATUS = {'Exit': 'Exit', 'Outside': 'Outside','Inside': 'Inside','Reflect': 'Reflect','~reflect': '~reflect'}
 
 def trans_sphere_to_dec_norm(psi, theta):
 
@@ -60,45 +60,55 @@ class HalfspaceGeom:
 
         return distance
 
-    def is_exit(self, other_point):
+    def _is_outside(self, single_electron):
 
-        if other_point[2] < self.point[2]:
+        coor = single_electron.get_prostr_coor()
 
-            return 'Exit'
+        if coor[2] < self.point[2]:
+
+            return STATUS['Outside']
 
         else: 
+            
+            return STATUS['Inside']
 
-            return 'Inside'
+    def _is_exit(self, point):
 
-    def is_reflect(self, point):
+        return True
 
-        if not True:
-            return 'Reflect'
-        else:
-            return '~reflect'
+    def get_new_point_after_reflect(self, curr_point, direction):
 
-    #make_reflation
+        result = curr_point + 2*np.array([0, 0, (self.point[2] - curr_point[2])])
 
-    def reflect(self, single_electron):
+        return result
 
-        old_dir = single_electron.get_dir()
-        new_dir = np.array([old_dir[0], np.pi - old_dir[1]])
+    def get_new_dir_after_reflect(self, prev_dir):
 
-        single_electron.set_dir(new_dir)
+        prev_dir[1] = np.pi - prev_dir[1]
+
+        result = prev_dir
+
+        return result
 
     def get_status(self, point):
 
-        if self.is_reflect(point) == '~reflect':
+        if self._is_outside(point) == STATUS['Outside']:
 
-            return self.is_exit(point)
+            if self._is_exit(point):
+                
+                return STATUS['Exit']
 
-        else: 
+            else:
+                
+                return STATUS['Reflect']
 
-            return 'Reflect'
+        else:
+
+            return STATUS['Inside']
 
     def get_cos_angle(self, electron): #return cos for external normal
 
-        angle = electron[4]
+        angle = electron.get_dir()[1]
         result = -np.cos(angle)
 
         return result

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_move.py</StartupFile>
+    <StartupFile>test_all.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -31,6 +31,12 @@
     <Compile Include="interface.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
+    <Compile Include="test_all.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_out.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test_tau.py">
       <SubType>Code</SubType>
     </Compile>

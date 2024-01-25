@@ -4,7 +4,7 @@ class Electrons:
 
     def __init__(self, x, y, z, psi, theta, E):
         
-        self.coor = np.array([x ,y, z, psi, theta, E])
+        self.coor = np.array([x, y, z, psi, theta, E])
 
     def set_electron_propities(self, effective_mass):
 

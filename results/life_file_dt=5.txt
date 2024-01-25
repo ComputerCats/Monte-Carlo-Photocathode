@@ -1,0 +1,3 @@
+mean_lif_time = 2047.1325
+mean rotation = 50.0975
+QE=0.1476

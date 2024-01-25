@@ -12,12 +12,15 @@ def test_make_DOS_func(way_to):
 
     res_func = Distributions._make_electron_DOS(way_to, 1.6, sep_file = '; ')
 
-    energyes = np.linspace(-2, 2, 100)
-    DOS = res_func(energyes)
+    energyes = np.linspace(0, 1.2, 100)
+    DOS_1 = res_func(energyes)
+    DOS_2 = res_func(energyes - 2.5)
 
     fig, ax = plt.subplots()
 
-    ax.plot(energyes, DOS, label = 'DOS', color = 'blue')
+    ax.plot(energyes, DOS_1, label = 'DOS_0', color = 'blue')
+    ax.plot(energyes, DOS_2, label = 'DOS_minus', color = 'red')
+    ax.plot(energyes, DOS_1*DOS_2, label = 'DOS_reaction', color = 'black')
     ax.grid()
     ax.set_xlabel('E, eV')
     ax.set_ylabel('DOS')
@@ -46,7 +49,7 @@ def test_make_energy_DOS_Cs3Sb():
     E_g = 1.6 #band gap
     delta_E = 0.001
 
-    energy_DOS = Distributions.make_energy_DOS_Cs3Sb(way_to_en_DOS, E_g, 1.95, delta_E)
+    energy_DOS = Distributions.make_energy_DOS(way_to_en_DOS, E_g, 2.3, delta_E)
 
     print(f'result_DOS = {energy_DOS}')
     print(f'norm must be equal 1, curr sum = {np.cumsum(energy_DOS[:, -1], axis = 0)[-1]}')
@@ -57,6 +60,6 @@ def test_make_energy_DOS_Cs3Sb():
     plt.ylabel('DOS')
     plt.savefig('energy_dos.png')
 
-#test_make_energy_DOS(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
+test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
 #test_make_DOS_func(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\Cs3Sb_DOS.csv')
-test_make_energy_DOS_Cs3Sb()
+#test_make_energy_DOS_Cs3Sb()
