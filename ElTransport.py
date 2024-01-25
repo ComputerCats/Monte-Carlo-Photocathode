@@ -4,7 +4,7 @@ import numpy as np
 
 def _make_new_coor(single_electron, dt): 
 
-    l_E = single_electron.get_veloicity()*dt
+    l_E = 0.003#single_electron.get_veloicity()*dt
 
     curr_dir = single_electron.get_dir()
 
@@ -43,36 +43,16 @@ def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
 
     return [p, 1-p]
 
-def _make_scatterings(single_electron, tau_mass, E_mass, dt, l_e_e_mass = [], E_e_e_mass = []):
-
-    N_tau = len(tau_mass)
-    N_l = len(l_e_e_mass)
+def _make_scatterings(single_electron, tau_mass, E_mass):
     
     do_new_dir = False
+    N_tau = len(tau_mass)
 
     for j in range(N_tau):
 
-        p_mass = _make_p_mass(single_electron.get_E(), dt, tau_mass[j])
+        single_electron.add_energy(E_mass[j])
 
-        is_scattering = np.random.choice([True, False], p = p_mass)
-
-        if is_scattering:
-
-            single_electron.add_energy(E_mass[j])
-
-            do_new_dir = True
-
-    for j in range(N_l):
-
-        p_mass = _make_p_mass_l_e_e(single_electron, l_e_e_mass[j], dt)
-
-        is_scattering = np.random.choice([True, False], p = p_mass)
-
-        if is_scattering:
-
-            single_electron.add_energy(E_e_e_mass[j])
-
-            do_new_dir = True
+        do_new_dir = True
 
     if do_new_dir:
 
@@ -99,9 +79,9 @@ def reflcation_process(geom, single_electron):
     single_electron.set_coor(new_coor)
     single_electron.set_dir(new_dir)
 
-def transport_process(single_electron, tau_mass, E_mass, dt, l_e_e_mass, E_e_e_mass):
+def transport_process(single_electron, tau_mass, E_mass, dt):
 
     _make_new_coor(single_electron, dt)
-    _make_scatterings(single_electron, tau_mass, E_mass, dt, l_e_e_mass, E_e_e_mass)
+    _make_scatterings(single_electron, tau_mass, E_mass)
     
 

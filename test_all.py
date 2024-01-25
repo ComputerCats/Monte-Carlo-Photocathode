@@ -13,7 +13,7 @@ import Visualization
 
 def get_coor_Cs3Sb(gamma):
 
-    way_to = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\alpha_Cs3Sb.csv'
+    way_to = r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\K2CsSb\alpha_K2CsSb.csv'
     data = pd.read_csv(way_to, sep = '; ').to_numpy()
 
     func = interpolate.interp1d(data[:, 0], data[:, 1])
@@ -49,7 +49,7 @@ def get_curr_gamma(way_to_coor_DOS, file_name):
 
 def get_R_func():
     
-    func = lambda x: 0.35
+    func = lambda x: 0.2
 
     return func
 
@@ -61,9 +61,9 @@ def plot_spectrum():
 
     N_electrons = 5000
     N_iterations = 10000
-    E_g = 1.6 #band gap
-    E_a = 0.45 #electron afinity
-    delta_E = 0.027 #ev, phonon energy
+    E_g = 1.1 #band gap
+    E_a = 0.65 #electron afinity
+    delta_E = 0.022 #ev, phonon energy
     delta_E_DOS = 0.001 #ev
     effective_mass = 0.23 #m/m_e
     dt = 5 #fs
@@ -73,9 +73,9 @@ def plot_spectrum():
 
     fig, ax = plt.subplots()
 
-    N_energies = 4
+    N_energies = 20
 
-    energyes = np.linspace(2.1, 3.1, N_energies)
+    energyes = np.linspace(1.95, 2.5, N_energies)
 
     R_func = get_R_func()
 
@@ -95,9 +95,7 @@ def plot_spectrum():
         task.set_calc_params(dt, N_electrons, N_iterations, kill_energy)
         task.set_DOS(energy_DOS, coor_DOS)
 
-        task.add_scattering(scat.tau_POP_plus, delta_E)
         task.add_scattering(scat.tau_POP_minus, -delta_E)
-        task.add_l_e_e_scattering(scat.l_e_e, -1.2)
 
         geom = Geometry.HalfspaceGeom(np.array([0, 0, 0.512]), np.array([0, 0, 1]))
         task.set_geometry(geom)
@@ -135,7 +133,7 @@ def plot_ready_results(file_name):
     with open(f'{file_name}.npy', 'rb') as f:
         result = np.load(f)
 
-    Visualization.compare_with_exp(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\Cs3Sb\ExpCs3Sb.csv', result)
+    Visualization.compare_with_exp(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\K2CsSb\ExpK2CsSb.csv', result)
 
 plot_spectrum()
 plot_ready_results('result_spectr1')
