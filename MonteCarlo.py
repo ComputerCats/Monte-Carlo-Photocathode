@@ -94,9 +94,6 @@ class Simulation:
         energy = np.random.choice(self.energy_DOS[:,0], p=self.energy_DOS[:,1])
         direction = ElTransport.make_initial_dir()
 
-        #Visualization.plot_coor_distr(r'distr\initial_electon_coor_distr', self.electron_gas)
-        #Visualization.plot_initial_energy_distr(r'distr\initial_electon_energy_distr', self.electron_gas, self.energyes_DOS[:,0])
-
         single_electron = electron.Electrons(coor[0], coor[1], coor[2], direction[0], direction[1], energy)
         single_electron.set_electron_propities(self.semiconductor.get_effective_mass())
 
