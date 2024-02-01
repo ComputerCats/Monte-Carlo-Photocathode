@@ -11,18 +11,16 @@ EXIT_STATUS = Geometry.STATUS
 
 def make_calc_log(i, exited_electrons, initial_electrons):
 
-    print(f'Calculation progress: {i/initial_electrons}')
-    print(f'Curr Yield: {exited_electrons/initial_electrons}')
+    print(f'Calculation progress: {round(i/initial_electrons, 3)}')
+    print(f'Curr Yield: {round(exited_electrons/initial_electrons*100, 1)} %')
 
 class Simulation:
 
     #way_to - way to save
     #way_from - way to library
 
-    def __init__(self, way_from, way_to, gamma):
+    def __init__(self, gamma):
 
-        self.way_from = way_from
-        self.way_to = way_to
         self.gamma = gamma
 
         self._init_scat_mass()
@@ -57,12 +55,13 @@ class Simulation:
         self.coor_DOS = coor_DOS
 
     #dt fs
-    def set_calc_params(self, dt, N, N_iterations, kill_energy):
+    def set_calc_params(self, l_E, E_loss, N, N_iterations, kill_energy):
 
         self.N_iterations = N_iterations
         self.initial_N_electrons = N
-        self.dt = dt
+        self.l_E = l_E
         self.kill_energy = kill_energy
+        self.E_loss = E_loss
 
     #tau fs
     def add_scattering(self, tau, delta_E):
@@ -113,9 +112,9 @@ class Simulation:
 
             self._run_new_iteration()
 
-    def kill_low_energy_electrons(self, single_electron, kill_energy):
+    def kill_low_energy_electrons(self, single_electron):
 
-        if single_electron.get_E() < kill_energy:
+        if single_electron.get_E() < self.kill_energy:
 
             return True
 
@@ -127,13 +126,13 @@ class Simulation:
 
         single_electron = self.initial_process()
 
-        if self.kill_low_energy_electrons(single_electron, self.kill_energy): return
+        if self.kill_low_energy_electrons(single_electron): return
 
         for i in range(self.N_iterations):
 
-            ElTransport.transport_process(single_electron, self.scatterings_tau, self.scatterings_E, self.dt)
+            ElTransport.transport_process(single_electron, self.E_loss, self.l_E)
 
-            if self.kill_low_energy_electrons(single_electron, self.kill_energy):
+            if self.kill_low_energy_electrons(single_electron):
                 
                 break
 
