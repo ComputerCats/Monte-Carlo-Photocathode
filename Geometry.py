@@ -1,8 +1,5 @@
 import numpy as np
-#import ivutils
-#import emtl
 import scipy.integrate as integrate
-#a geometry class for Monte Carlo simulation. a convex body is defined by the intersection of planes 
 
 STATUS = {'Exit': 'Exit', 'Outside': 'Outside','Inside': 'Inside','Reflect': 'Reflect','~reflect': '~reflect', 'Died': 'Died'}
 
@@ -16,38 +13,9 @@ def L_2_norm(func, args, min_bound, max_bound):
 
     return norm
 
-'''
-def numpy_vector_to_emtl(vector):
-
-    result = emtl.Vector_3(vector[0], vector[1], vector[2])
-
-    return result
-
-class BasicGeom:
-    
-    def __init__(self):
-
-        self.planes = ivutils.Plane3Vector()
-        
-    def add_plane(self, plane):
-
-        self.planes.push_back(plane)
-
-    def init_polygon(self):
-
-        self.polygon = emtl.Polyhedron_3(self.planes)
-
-    def is_in(self, point):
-
-        return self.polygon.TestPoint(point)
-
-    def get_projection(self, point):
-
-        result = self.polygon.SurfProject(point)
-
-        return result
-'''
 class HalfspaceGeom:
+
+    #normales must be vec to outside
 
     def __init__(self, point, normale):
 
@@ -55,6 +23,14 @@ class HalfspaceGeom:
         self.normale = normale
 
         self.reflection_coef = 1
+
+    def get_name(self):
+
+        return 'HalfspaceGeom'
+
+    def get_params(self):
+
+        return f'point = {self.point}, normale = {self.normale}'
 
     def set_absorption(self, reflection_coef):
 
@@ -66,21 +42,15 @@ class HalfspaceGeom:
 
         return distance
 
-    def _is_outside(self, single_electron):
+    def _is_outside(self, coor):
 
-        coor = single_electron.get_prostr_coor()
-
-        if coor[2] < self.point[2]:
+        if self.get_distance(coor) > 0:
 
             return STATUS['Outside']
 
         else: 
             
             return STATUS['Inside']
-
-    def _is_exit(self, point):
-
-        return True
 
     def get_new_point_after_reflect(self, curr_point, direction):
 
@@ -99,14 +69,8 @@ class HalfspaceGeom:
     def get_status(self, point):
 
         if self._is_outside(point) == STATUS['Outside']:
-
-            if self._is_exit(point):
-                
-                return STATUS['Exit']
-
-            else:
-                
-                return STATUS['Reflect']
+            
+            return STATUS['Exit']
 
         else:
 
@@ -129,6 +93,14 @@ class PlateGeom:
         self.normale_substrate = normale_substrate
         self.point_out = point_out
         self.normale_out = normale_out
+
+    def get_name(self):
+
+        return 'PlateGeom'
+
+    def get_params(self):
+
+        return f'point_substrate = {self.point_substrate}, normale_substrate = {self.normale_substrate}, point_out = {self.point_out}, normale_out = {self.normale_out}'
 
     @staticmethod
     def get_distance(other_point, plane_point, normale):

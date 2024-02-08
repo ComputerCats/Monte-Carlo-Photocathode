@@ -32,22 +32,22 @@ class Simulation:
 
     def _init_log_mass(self):
 
-        self.mass_str_log = []
+        self.mass_log = {}
 
     def _init_scat_mass(self):
 
-        self.scatterings_tau = []
-        self.scatterings_E = []
         self.scatterings_l_e_e = []
         self.scatterings_E_l_e_e = []
 
-    def _add_str_to_log(self, other_str):
+    def _add_str_to_log(self, param_name, param_value):
 
-        self.mass_str_log.append(other_str)
+        self.mass_log[f'{param_name}'] = param_value
 
-    def set_semiconductor(self, semiconductor):
+    def set_semiconductor(self, semiconductor_name, semiconductor):
 
         self.semiconductor = semiconductor
+
+        self._add_str_to_log('semiconductor', f'{semiconductor_name}, E_a = {semiconductor.get_E_a()}, E_g = {semiconductor.get_E_g()}')
 
     def set_DOS(self, energy_DOS, coor_DOS):
 
@@ -63,20 +63,25 @@ class Simulation:
         self.kill_energy = kill_energy
         self.E_loss = E_loss
 
-    #tau fs
-    def add_scattering(self, tau, delta_E):
-
-        self.scatterings_tau.append(tau)
-        self.scatterings_E.append(delta_E)
+        self._add_str_to_log('N_iterations', f'{self.N_iterations}')
+        self._add_str_to_log('initial_N_electrons', f'{self.initial_N_electrons}')
+        self._add_str_to_log('l_E', f'{self.l_E}')
+        self._add_str_to_log('kill_energy', f'{self.kill_energy}')
+        self._add_str_to_log('E_loss', f'{self.E_loss}')
+        
 
     def add_l_e_e_scattering(self, l_e_e, delta_E):
 
         self.scatterings_l_e_e.append(l_e_e)
         self.scatterings_E_l_e_e.append(delta_E)
 
+        self._add_str_to_log('scattering l', f'delta E = {delta_E}')
+
     def set_geometry(self, geometry):
 
         self.geometry = geometry
+
+        self._add_str_to_log('geometry', f'{self.geometry.get_name()}, params = {self.geometry.get_params()}')
     
     def initial_process(self):
 
@@ -108,6 +113,8 @@ class Simulation:
             make_calc_log(i, self.exit_electron, self.initial_N_electrons)
 
             self._run_new_iteration()
+
+        self._save_log()
 
     def kill_low_energy_electrons(self, single_electron):
 
@@ -144,7 +151,11 @@ class Simulation:
 
         return self.exit_electron/self.initial_N_electrons
 
-    def save_params_of_simulation(self):
+    def _save_log(self):
 
-        pass
-        #log_file = open('', 'w')
+        with open('log.txt', 'w') as f:
+
+            for key in self.mass_log:
+
+                f.write(f'{key} = {self.mass_log[key]}\n')
+        
