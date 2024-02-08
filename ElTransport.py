@@ -30,20 +30,30 @@ def _make_p_mass(E, dt, tau):
         raise ValueError('dt/tau must be less then 1')
 
     return [p, 1-p]
+'''
+def _make_p_mass_l_e_e(single_electron, l_e_e, dl):
 
-def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
-
-    p = 1 - np.exp(-single_electron.get_veloicity()*dt/l_e_e(single_electron.get_E()))
+    p = 1 - np.exp(-dl/l_e_e(single_electron.get_E()))
 
     if p >= 1:
         
         raise ValueError('dt/tau must be less then 1')
 
     return [p, 1-p]
-'''
-def _make_scatterings(single_electron, E_loss):
+
+def _make_scatterings(single_electron, E_loss, dl, scatterings_l_e_e, scatterings_E_l_e_e):
     
     single_electron.add_energy(-E_loss)
+
+    for indx, l_e in enumerate(scatterings_l_e_e):
+
+        p_mass = _make_p_mass_l_e_e(single_electron, l_e, dl)
+
+        is_scat = np.random.choice([True, False], p=p_mass)
+
+        if is_scat:
+
+            single_electron.add_energy(scatterings_E_l_e_e[indx])
 
     _make_new_dir(single_electron)
 
@@ -68,8 +78,8 @@ def reflcation_process(geom, single_electron):
     single_electron.set_coor(new_coor)
     single_electron.set_dir(new_dir)
 
-def transport_process(single_electron, E_loss, l_e):
+def transport_process(single_electron, E_loss, l_e, scatterings_l_e_e, scatterings_E_l_e_e):
 
     _make_new_coor(single_electron, l_e)
-    _make_scatterings(single_electron, E_loss)
+    _make_scatterings(single_electron, E_loss, l_e, scatterings_l_e_e, scatterings_E_l_e_e)
 

@@ -29,7 +29,7 @@ def is_exit(geom, single_electron, semiconductor):
 
 def exit_process(geom, single_electron, semiconductor):
 
-    electron_status = geom.get_status(single_electron)
+    electron_status = geom.get_status(single_electron.get_prostr_coor())
 
     if electron_status == Geometry.STATUS['Exit']:
         
