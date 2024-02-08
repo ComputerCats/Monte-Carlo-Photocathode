@@ -121,3 +121,21 @@ def compare_with_exp(way_to, QE):
     ax.legend()
 
     fig.savefig('Comparing.png')
+
+def compare_with_exp(way_to_exp, QE, way_to_val):
+
+    exp_data = pd.read_csv(way_to_exp, header = None, sep = '; ').to_numpy()
+    val_data = pd.read_csv(way_to_val, header = None, sep = '; ').to_numpy()
+
+    fig, ax = plt.subplots()
+
+    ax.plot(QE[:, 0], 100*QE[:, 1], label = 'Monte Carlo', color = 'red')
+    ax.scatter(exp_data[:, 0], exp_data[:, 1], label = 'Experiment', color = 'blue')
+    ax.scatter(val_data[:, 0], val_data[:, 1], label = 'Validation', color = 'black')
+
+    ax.grid()
+    ax.set_xlabel('$\hbar\omega$')
+    ax.set_ylabel('QE')
+    ax.legend()
+
+    fig.savefig('Comparing.png')

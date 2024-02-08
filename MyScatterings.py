@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import interpolate
 
 #semiconductor propeties
-E_G_CONST = 1.6
+E_G_CONST = 1.2
 T_SEMICONDUCTOR = 300
 DELTA_EPSILON = (1/5-1/8.2)#(1/6-1/14)
 DELTA_E_POP_PLUS = 0.027
@@ -13,7 +13,7 @@ EFFECTIVE_MASS = 0.23
 #HELP FOR TAU POP
 CONST_PART_TAU_POP = (1.6)**3*DELTA_E_POP_PLUS/(4*np.pi*8.85)
 
-L_E_E = pd.read_csv(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\Monte-Carlo-Photocathode\experiment\K2CsSb\l_e_e_K2CsSb.csv', sep = '; ', header = None)
+L_E_E = pd.read_csv(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\mat_prop\data\K2CsSb\l_e_e_K2CsSb.csv', sep = '; ', header = None)
 L_E_E.iloc[:, 1] = L_E_E.iloc[:, 1]/10000  #in mu
 FUNC_l_e_e = interpolate.interp1d(L_E_E.iloc[:, 0], L_E_E.iloc[:, 1])
 
@@ -26,6 +26,10 @@ def l_e_e(E):
     if E - E_G_CONST < 0.09:
 
         return 0.05
+
+    if E - E_G_CONST > 1.9:
+
+        return 0.012
         
     return FUNC_l_e_e(E - E_G_CONST)
     
