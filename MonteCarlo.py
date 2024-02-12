@@ -65,9 +65,7 @@ class Simulation:
         self._add_str_to_log('dt', f'{self.dt}')
         self._add_str_to_log('N_iterations', f'{self.N_iterations}')
         self._add_str_to_log('initial_N_electrons', f'{self.initial_N_electrons}')
-        self._add_str_to_log('l_E', f'{self.l_E}')
         self._add_str_to_log('kill_energy', f'{self.kill_energy}')
-        self._add_str_to_log('E_loss', f'{self.E_loss}')
         
 
     def add_l_e_e_scattering(self, l_e_e, delta_E):
@@ -134,7 +132,7 @@ class Simulation:
 
         for i in range(self.N_iterations):
 
-            ElTransport.transport_process(single_electron, self.E_loss, self.l_E, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
+            ElTransport.transport_process(single_electron, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
 
             if self.kill_low_energy_electrons(single_electron):
                 

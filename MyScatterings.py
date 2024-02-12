@@ -32,6 +32,10 @@ def l_e_e(E):
         return 0.012
         
     return FUNC_l_e_e(E - E_G_CONST)
+
+def l_phonon(E):
+
+    return 0.003
     
 def _Bose_Distr(E_phonon):
 
@@ -39,22 +43,22 @@ def _Bose_Distr(E_phonon):
 
 
 def tau_POP_plus(E):
-    '''
+
     logarithm_part = np.log((1+np.sqrt(1+DELTA_E_POP_PLUS/E))/np.abs(1-np.sqrt(1+DELTA_E_POP_PLUS/E)))
     veloisity_reaction = 100*CONST_PART_TAU_POP*_Bose_Distr(DELTA_E_POP_PLUS)*DELTA_EPSILON*np.sqrt(EFFECTIVE_MASS/(2*E*1.6))*logarithm_part
     
     return 1/veloisity_reaction
-    '''
+
     return 150
     
 
 def tau_POP_minus(E):
-    '''
+
     logarithm_part = np.log((1+np.sqrt(1-DELTA_E_POP_PLUS/E))/np.abs(1-np.sqrt(1-DELTA_E_POP_PLUS/E)))
     veloisity_reaction = 100*CONST_PART_TAU_POP*(_Bose_Distr(DELTA_E_POP_PLUS)+1)*DELTA_EPSILON*np.sqrt(EFFECTIVE_MASS/(2*E*1.6))*logarithm_part
 
     return 1/veloisity_reaction
-    '''
+
     return 20
     
 

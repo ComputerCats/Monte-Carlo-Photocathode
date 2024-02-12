@@ -2,18 +2,19 @@ import numpy as np
 
 # life of electron: (x, y, z, psi, theta, E) -> phonon scattering (change angle, change coor, change energy) -> new iter
 
-def _make_new_coor(single_electron, l_E): 
+def _make_new_coor(single_electron, dt): 
 
     curr_dir = single_electron.get_dir()
+    l_move = single_electron.get_veloicity()*dt
 
     cos_theta_mass = np.cos(curr_dir[1])
     sin_theta_mass = np.sin(curr_dir[1])
     sin_psi_mass = np.sin(curr_dir[0])
     cos_psi_mass = np.cos(curr_dir[0])
 
-    dx = l_E*sin_theta_mass*cos_psi_mass
-    dy = l_E*sin_theta_mass*sin_psi_mass
-    dz = l_E*cos_theta_mass
+    dx = l_move*sin_theta_mass*cos_psi_mass
+    dy = l_move*sin_theta_mass*sin_psi_mass
+    dz = l_move*cos_theta_mass
 
     single_electron.add_coor(np.array([dx, dy, dz]))
 '''
@@ -31,9 +32,9 @@ def _make_p_mass(E, dt, tau):
 
     return [p, 1-p]
 '''
-def _make_p_mass_l_e_e(single_electron, l_e_e, dl):
+def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
 
-    p = 1 - np.exp(-dl/l_e_e(single_electron.get_E()))
+    p = 1 - np.exp(-single_electron.get_veloicity()*dt/l_e_e(single_electron.get_E()))
 
     if p >= 1:
         
@@ -41,13 +42,13 @@ def _make_p_mass_l_e_e(single_electron, l_e_e, dl):
 
     return [p, 1-p]
 
-def _make_scatterings(single_electron, E_loss, dl, scatterings_l_e_e, scatterings_E_l_e_e):
+def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
     
-    single_electron.add_energy(-E_loss)
+    new_dir = False
 
     for indx, l_e in enumerate(scatterings_l_e_e):
 
-        p_mass = _make_p_mass_l_e_e(single_electron, l_e, dl)
+        p_mass = _make_p_mass_l_e_e(single_electron, l_e, dt)
 
         is_scat = np.random.choice([True, False], p=p_mass)
 
@@ -55,7 +56,11 @@ def _make_scatterings(single_electron, E_loss, dl, scatterings_l_e_e, scattering
 
             single_electron.add_energy(scatterings_E_l_e_e[indx])
 
-    _make_new_dir(single_electron)
+            new_dir = True
+
+    if new_dir:
+
+        _make_new_dir(single_electron)
 
 def _make_new_dir(single_electron):
 
@@ -78,8 +83,8 @@ def reflcation_process(geom, single_electron):
     single_electron.set_coor(new_coor)
     single_electron.set_dir(new_dir)
 
-def transport_process(single_electron, E_loss, l_e, scatterings_l_e_e, scatterings_E_l_e_e):
+def transport_process(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
 
-    _make_new_coor(single_electron, l_e)
-    _make_scatterings(single_electron, E_loss, l_e, scatterings_l_e_e, scatterings_E_l_e_e)
+    _make_new_coor(single_electron, dt)
+    _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e)
 
