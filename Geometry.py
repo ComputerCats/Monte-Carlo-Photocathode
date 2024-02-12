@@ -124,7 +124,7 @@ class PlateGeom:
 
         if self.get_distance(curr_point, self.point_substrate, self.normale_substrate) > 0:
 
-            result = curr_point - 2*np.array([0, 0, (curr_point[2] - self.point_substrate[2])])
+            result = curr_point[2] - 2*np.array([0, 0, (curr_point[2] - self.point_substrate[2])])
 
         if self.get_distance(curr_point, self.point_out, self.normale_out) > 0:
 

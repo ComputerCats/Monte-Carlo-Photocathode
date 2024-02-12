@@ -55,14 +55,14 @@ class Simulation:
         self.coor_DOS = coor_DOS
 
     #dt fs
-    def set_calc_params(self, l_E, E_loss, N, N_iterations, kill_energy):
+    def set_calc_params(self, dt, N, N_iterations, kill_energy):
 
         self.N_iterations = N_iterations
         self.initial_N_electrons = N
-        self.l_E = l_E
         self.kill_energy = kill_energy
-        self.E_loss = E_loss
+        self.dt = dt
 
+        self._add_str_to_log('dt', f'{self.dt}')
         self._add_str_to_log('N_iterations', f'{self.N_iterations}')
         self._add_str_to_log('initial_N_electrons', f'{self.initial_N_electrons}')
         self._add_str_to_log('l_E', f'{self.l_E}')
