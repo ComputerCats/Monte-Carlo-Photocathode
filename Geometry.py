@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.integrate as integrate
 
-STATUS = {'Exit': 'Exit', 'Outside': 'Outside','Inside': 'Inside','Reflect': 'Reflect','~reflect': '~reflect', 'Died': 'Died'}
+STATUS = {'Exit': 'Exit', 'Outside': 'Outside','Inside': 'Inside','Reflect': 'Reflect', 'Died': 'Died'}
 
 def trans_sphere_to_dec_norm(psi, theta):
 
@@ -22,7 +22,6 @@ class HalfspaceGeom:
         self.point = point
         self.normale = normale
 
-        self.reflection_coef = 1
 
     def get_name(self):
 
@@ -31,10 +30,6 @@ class HalfspaceGeom:
     def get_params(self):
 
         return f'point = {self.point}, normale = {self.normale}'
-
-    def set_absorption(self, reflection_coef):
-
-        self.reflection_coef = reflection_coef
 
     def get_distance(self, other_point):
 
@@ -87,12 +82,14 @@ class PlateGeom:
 
     #normales must be vec to outside
 
-    def __init__(self, point_substrate, normale_substrate, point_out, normale_out):
+    def __init__(self, point_substrate, normale_substrate, point_out, normale_out, R = 1):
 
         self.point_substrate = point_substrate
         self.normale_substrate = normale_substrate
         self.point_out = point_out
         self.normale_out = normale_out
+
+        self.R = R
 
     def get_name(self):
 
@@ -108,7 +105,6 @@ class PlateGeom:
         distance = np.dot(other_point - plane_point, normale)
 
         return distance
-
 
     def _is_outside(self, coor):
 
@@ -140,6 +136,12 @@ class PlateGeom:
 
         return result
 
+    def _get_substrat_exit_status(self):
+
+        substrat_reflect_or_died_status = np.random.choice([STATUS['Died'], STATUS['Reflect']], p=[1-self.R, self.R])
+
+        return substrat_reflect_or_died_status
+
     def get_status(self, point):
 
         if self._is_outside(point) == STATUS['Outside']:
@@ -150,7 +152,7 @@ class PlateGeom:
 
             else:
                 
-                return STATUS['Reflect']
+                return self._get_substrat_exit_status()
 
         else:
 

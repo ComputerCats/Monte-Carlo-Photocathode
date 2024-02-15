@@ -155,3 +155,21 @@ def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
     ax.legend()
 
     fig.savefig('Comparing.png')
+
+def plot_error(dict_QE, etalon):
+
+    fig, ax = plt.subplots()
+
+    for dt in dict_QE:
+
+        error = np.max(abs(etalon[:, 1] - dict_QE[dt][:, 1])/etalon[:, 1])
+        ax.scatter(float(dt), error, color = 'red')
+
+    ax.set_xlabel('dt, fs')
+    ax.set_ylabel('error, %')
+    ax.grid()
+
+    fig.savefig('error.png')
+
+
+    

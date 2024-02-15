@@ -4,7 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_energy_dos.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -31,28 +32,6 @@
     <Compile Include="interface.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
-    <Compile Include="test_all.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test_out.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test_tau.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test_calc.py" />
-    <Compile Include="test_coor_dos.py" />
-    <Compile Include="test_dir.py" />
-    <Compile Include="test_energy_dos.py" />
-    <Compile Include="test_geom.py" />
-    <Compile Include="test_init_phase_prostr.py" />
-    <Compile Include="test_move.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="test_new_iter.py" />
-    <Compile Include="test_random.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Validation.py" />
     <Compile Include="Visualization.py" />
   </ItemGroup>
