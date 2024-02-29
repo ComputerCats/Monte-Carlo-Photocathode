@@ -61,7 +61,7 @@ class Simulation:
 
         self.geometry = geometry
 
-    def initial_process_single_electron(self):
+    def _initial_process_single_electron(self):
 
         #electron columns = [x, y, z, phi (0, 2pi), psi (0, pi), E]
 
@@ -92,7 +92,7 @@ class Simulation:
 
     def _run_new_iteration(self):
 
-        single_electron = self.initial_process_single_electron()
+        single_electron = self._initial_process_single_electron()
 
         for i in range(self.N_iterations):
 

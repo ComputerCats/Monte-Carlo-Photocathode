@@ -30,9 +30,9 @@ class Electrons:
 
     def get_veloicity(self):
 
-        return 0.001*np.sqrt(self.coor[-1]*2*1.6/(self.effective_mass*9.1))
+        return 0.001*np.sqrt(abs(self.coor[-1])*2*1.6/(self.effective_mass*9.1))
 
-    def get_prostr_coor(self):
+    def get_coor(self):
 
         return self.coor[:3]
 

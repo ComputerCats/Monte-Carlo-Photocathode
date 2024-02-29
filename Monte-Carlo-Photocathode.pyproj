@@ -32,6 +32,7 @@
     <Compile Include="interface.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
+    <Compile Include="ParallelMonteCarlo.py" />
     <Compile Include="Validation.py" />
     <Compile Include="Visualization.py" />
   </ItemGroup>

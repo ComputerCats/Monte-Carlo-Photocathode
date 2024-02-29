@@ -170,6 +170,3 @@ def plot_error(dict_QE, etalon):
     ax.grid()
 
     fig.savefig('error.png')
-
-
-    

@@ -36,6 +36,14 @@ def l_e_e(E):
 def l_phonon(E):
 
     return 0.003
+
+def l_phonon_minus(E):
+
+    return 0.004
+
+def l_phonon_plus(E):
+
+    return 0.012
     
 def _Bose_Distr(E_phonon):
 

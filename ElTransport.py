@@ -36,9 +36,13 @@ def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
 
     p = 1 - np.exp(-single_electron.get_veloicity()*dt/l_e_e(single_electron.get_E()))
 
-    if p >= 1:
+    if p > 1:
         
-        raise ValueError('dt/tau must be less then 1')
+        raise ValueError('p scat must be less then 1')
+
+    if p < 0:
+        
+        raise ValueError('p scat must be bigger then 0')
 
     return [p, 1-p]
 
@@ -78,7 +82,7 @@ def make_initial_dir():
 
 def reflcation_process(geom, single_electron):
 
-    new_coor = geom.get_new_point_after_reflect(single_electron.get_prostr_coor(), single_electron.get_dir())
+    new_coor = geom.get_new_point_after_reflect(single_electron.get_coor(), single_electron.get_dir())
     new_dir = geom.get_new_dir_after_reflect(single_electron.get_dir())
     single_electron.set_coor(new_coor)
     single_electron.set_dir(new_dir)
