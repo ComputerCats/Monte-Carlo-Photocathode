@@ -105,7 +105,7 @@ def plot_coor_dos(file_name, coor_dos):
     ax.set_ylabel('Coor DOS')
 
     fig.savefig(f'{file_name}')
-
+'''
 def compare_with_exp(way_to, QE):
 
     exp_data = pd.read_csv(way_to, header = None, sep = '; ').to_numpy()
@@ -121,20 +121,23 @@ def compare_with_exp(way_to, QE):
     ax.legend()
 
     fig.savefig('Comparing.png')
-
+'''
 def compare_with_exp(way_to_exp, QE):
 
     exp_data = pd.read_csv(way_to_exp, header = None, sep = '; ').to_numpy()
 
     fig, ax = plt.subplots()
 
-    ax.plot(QE[:, 0], 100*QE[:, 1], label = 'Monte Carlo', color = 'red')
-    ax.scatter(exp_data[:, 0], exp_data[:, 1], label = 'Experiment', color = 'blue')
+    ax.plot(QE[:, 0], 100*QE[:, 1], label = 'Monte Carlo simulation', color = 'red')
+    ax.scatter(exp_data[:, 0], exp_data[:, 1], label = 'Experiment results', color = 'blue')
 
     ax.grid()
-    ax.set_xlabel('$\hbar\omega$')
-    ax.set_ylabel('QE')
+    ax.set_xlabel('Photon energy, eV')
+    ax.set_ylabel('QE, %')
+    ax.set_xlim(right = 2.8, left = 2)
+    ax.set_ylim(top = 16)
     ax.legend()
+    ax.set_title('Comparing with experiment results')
 
     fig.savefig('Comparing.png')
 
