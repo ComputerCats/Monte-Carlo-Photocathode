@@ -17,22 +17,8 @@ def _make_new_coor(single_electron, dt):
     dz = l_move*cos_theta_mass
 
     single_electron.add_coor(np.array([dx, dy, dz]))
-'''
-def _make_p_mass(E, dt, tau):
 
-    p = 1 - np.exp(-dt/tau(E))
-
-    if tau(E) <= 0:
-        
-        raise ValueError('Tau must be greater then 0')
-
-    if p >= 1:
-        
-        raise ValueError('dt/tau must be less then 1')
-
-    return [p, 1-p]
-'''
-def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
+def _make_p_l_e_e(single_electron, l_e_e, dt):
 
     p = 1 - np.exp(-single_electron.get_veloicity()*dt/l_e_e(single_electron.get_E()))
 
@@ -44,7 +30,19 @@ def _make_p_mass_l_e_e(single_electron, l_e_e, dt):
         
         raise ValueError('p scat must be bigger then 0')
 
-    return [p, 1-p]
+    return p
+
+def _is_scat(p):
+
+    value = np.random.rand()
+
+    if p > value:
+
+        return False
+
+    else:
+
+        return True
 
 def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
     
@@ -52,11 +50,9 @@ def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_
 
     for indx, l_e in enumerate(scatterings_l_e_e):
 
-        p_mass = _make_p_mass_l_e_e(single_electron, l_e, dt)
+        p = _make_p_l_e_e(single_electron, l_e, dt)
 
-        is_scat = np.random.choice([True, False], p=p_mass)
-
-        if is_scat:
+        if _is_scat(p):
 
             single_electron.add_energy(scatterings_E_l_e_e[indx])
 
