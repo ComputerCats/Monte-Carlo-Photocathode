@@ -22,7 +22,6 @@ class HalfspaceGeom:
         self.point = point
         self.normale = normale
 
-
     def get_name(self):
 
         return 'HalfspaceGeom'
@@ -47,13 +46,13 @@ class HalfspaceGeom:
             
             return STATUS['Inside']
 
-    def get_new_point_after_reflect(self, curr_point, direction):
+    def get_new_point_after_reflect(self, dir, curr_point):
 
         result = curr_point + 2*np.array([0, 0, (self.point[2] - curr_point[2])])
 
         return result
 
-    def get_new_dir_after_reflect(self, prev_dir):
+    def get_new_dir_after_reflect(self, curr_point, prev_dir):
 
         prev_dir[1] = np.pi - prev_dir[1]
 
@@ -128,7 +127,7 @@ class PlateGeom:
 
         return result
 
-    def get_new_dir_after_reflect(self, prev_dir):
+    def get_new_dir_after_reflect(self, curr_point, prev_dir):
 
         prev_dir[1] = np.pi - prev_dir[1]
 
@@ -173,7 +172,7 @@ class Rectangular:
     #|        |       |
     #|        |       |
     #|        |       |
-    #                 V  Z
+    #|        |       V  Z
     #*--------/
     #point 1
 
@@ -206,17 +205,45 @@ class Rectangular:
 
     def _is_outside(self, other_point):
 
-        for indx, normale in enumerate(self.normales):
+        if np.dot(other_point - self.point1, self.normales[1]) > 0:
 
-            if np.dot(other_point - self.point1, normale) > 0:
+            if 1 in self.substrate_normales_indx:
 
-                if indx in self.substrate_normales_indx:
+                return STATUS['Died']
 
-                    return STATUS['Died']
+            else:
 
-                else:
+                return STATUS['Exit']
 
-                    return STATUS['Exit']
+        if np.dot(other_point - self.point1, self.normales[2]) > 0:
+
+            if 2 in self.substrate_normales_indx:
+
+                return STATUS['Died']
+
+            else:
+
+                return STATUS['Exit']
+
+        if np.dot(other_point - self.point2, self.normales[0]) > 0:
+
+            if 0 in self.substrate_normales_indx:
+
+                return STATUS['Died']
+
+            else:
+
+                return STATUS['Exit']
+
+        if np.dot(other_point - self.point2, self.normales[3]) > 0:
+
+            if 3 in self.substrate_normales_indx:
+
+                return STATUS['Died']
+
+            else:
+
+                return STATUS['Exit']
 
         return STATUS['Inside']
 
@@ -238,10 +265,11 @@ class Rectangular:
 
             return 3
 
-    def get_new_point_after_reflect(self, curr_point, direction):
+        raise ValueError('Coudnt find outer plane')
+
+    def get_new_point_after_reflect(self, dir, curr_point):
 
         outer_normale_indx = self.get_outer_way(curr_point)
-
         if outer_normale_indx == 0:
 
             result = curr_point + 2*np.array([self.point1[0] - curr_point[0], 0, 0])

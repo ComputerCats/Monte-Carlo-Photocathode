@@ -6,6 +6,13 @@ import ElTransport as eltrans
 
 EXIT_PROCESS_STATUS = {'Out': 'Out', 'Died': 'Died', 'New_iter': 'New_iter'}
 
+def _reflcation_process(geom, single_electron):
+
+    new_dir = geom.get_new_dir_after_reflect(single_electron.get_coor(), single_electron.get_dir())
+    new_coor = geom.get_new_point_after_reflect(single_electron.get_coor(), single_electron.get_dir())
+    single_electron.set_coor(new_coor)
+    single_electron.set_dir(new_dir)
+
 def _p_exit(E, E_a, cos_angle):
 
     E_exit = E*cos_angle*cos_angle
@@ -55,7 +62,7 @@ def exit_process(geom, single_electron, semiconductor, kill_energy):
 
         else:
 
-            eltrans.reflcation_process(geom, single_electron)
+            _reflcation_process(geom, single_electron)
 
             return EXIT_PROCESS_STATUS['New_iter']
 
@@ -69,7 +76,7 @@ def exit_process(geom, single_electron, semiconductor, kill_energy):
 
     if electron_status == Geometry.STATUS['Reflect']:
 
-        eltrans.reflcation_process(geom, single_electron)
+        _reflcation_process(geom, single_electron)
 
         return EXIT_PROCESS_STATUS['New_iter']
 

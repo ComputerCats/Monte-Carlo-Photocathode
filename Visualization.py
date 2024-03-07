@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+
 def plot_x_distr(name_pict, electron_gas):
 
     N_electrons = electron_gas.shape[0]
@@ -123,21 +124,20 @@ def compare_with_exp(way_to, QE):
     fig.savefig('Comparing.png')
 '''
 def compare_with_exp(way_to_exp, QE):
-
+    
     exp_data = pd.read_csv(way_to_exp, header = None, sep = '; ').to_numpy()
 
     fig, ax = plt.subplots()
-
-    ax.plot(QE[:, 0], 100*QE[:, 1], label = 'Monte Carlo simulation', color = 'red')
-    ax.scatter(exp_data[:, 0], exp_data[:, 1], label = 'Experiment results', color = 'blue')
+    ax.plot(QE[:, 0], 100*QE[:, 1], label = ' ', color = 'red')
+    ax.scatter(exp_data[:, 0], exp_data[:, 1], label = ' ', color = 'blue')
 
     ax.grid()
-    ax.set_xlabel('Photon energy, eV')
-    ax.set_ylabel('QE, %')
-    ax.set_xlim(right = 2.8, left = 2)
+    ax.set_xlabel('              ')
+    ax.set_ylabel('              ')
+    ax.set_xlim(right = 2.4, left = 2)
     ax.set_ylim(top = 16)
     ax.legend()
-    ax.set_title('Comparing with experiment results')
+    ax.set_title(' ')
 
     fig.savefig('Comparing.png')
 
@@ -145,7 +145,7 @@ def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
 
     exp_data = pd.read_csv(way_to_exp, header = None, sep = '; ').to_numpy()
     val_data = pd.read_csv(way_to_val, header = None, sep = '; ').to_numpy()
-
+    
     fig, ax = plt.subplots()
 
     ax.plot(QE[:, 0], 100*QE[:, 1], label = 'Monte Carlo', color = 'red')

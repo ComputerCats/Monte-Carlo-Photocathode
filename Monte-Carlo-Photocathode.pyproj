@@ -4,8 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>test_OneDGeom.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -33,6 +32,9 @@
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
     <Compile Include="ParallelMonteCarlo.py" />
+    <Compile Include="test_OneDGeom.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Validation.py" />
     <Compile Include="Visualization.py" />
   </ItemGroup>
