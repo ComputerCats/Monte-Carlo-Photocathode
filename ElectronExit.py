@@ -8,8 +8,8 @@ EXIT_PROCESS_STATUS = {'Out': 'Out', 'Died': 'Died', 'New_iter': 'New_iter'}
 
 def _reflcation_process(geom, single_electron):
 
-    new_dir = geom.get_new_dir_after_reflect(single_electron.get_coor(), single_electron.get_dir())
-    new_coor = geom.get_new_point_after_reflect(single_electron.get_coor(), single_electron.get_dir())
+    new_dir = geom.get_new_dir_after_reflect(single_electron.get_dir(), single_electron.get_coor())
+    new_coor = geom.get_new_point_after_reflect(single_electron.get_dir(), single_electron.get_coor())
     single_electron.set_coor(new_coor)
     single_electron.set_dir(new_dir)
 

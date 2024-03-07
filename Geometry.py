@@ -46,13 +46,13 @@ class HalfspaceGeom:
             
             return STATUS['Inside']
 
-    def get_new_point_after_reflect(self, dir, curr_point):
+    def get_new_point_after_reflect(self, prev_dir, curr_point):
 
         result = curr_point + 2*np.array([0, 0, (self.point[2] - curr_point[2])])
 
         return result
 
-    def get_new_dir_after_reflect(self, curr_point, prev_dir):
+    def get_new_dir_after_reflect(self, prev_dir, curr_point):
 
         prev_dir[1] = np.pi - prev_dir[1]
 
@@ -115,7 +115,7 @@ class PlateGeom:
             
             return STATUS['Inside']
 
-    def get_new_point_after_reflect(self, curr_point, direction):
+    def get_new_point_after_reflect(self, direction, curr_point):
 
         if self.get_distance(curr_point, self.point_substrate, self.normale_substrate) > 0:
 
@@ -127,7 +127,7 @@ class PlateGeom:
 
         return result
 
-    def get_new_dir_after_reflect(self, curr_point, prev_dir):
+    def get_new_dir_after_reflect(self, prev_dir, curr_point):
 
         prev_dir[1] = np.pi - prev_dir[1]
 
@@ -377,7 +377,7 @@ class OneD:
             
             return STATUS['Inside']
 
-    def get_new_point_after_reflect(self, curr_point, direction):
+    def get_new_point_after_reflect(self, direction, curr_point):
 
         if self.get_distance(curr_point, self.point_substrate, self.normale_substrate) > 0:
 
@@ -389,7 +389,7 @@ class OneD:
 
         return result
 
-    def get_new_dir_after_reflect(self, prev_dir):
+    def get_new_dir_after_reflect(self, prev_dir, curr_point):
 
         prev_dir[1] = np.pi - prev_dir[1]
 
