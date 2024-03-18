@@ -13,6 +13,30 @@ def L_2_norm(func, args, min_bound, max_bound):
 
     return norm
 
+def get_h_tetraedr(points, point_electron, out_normale):
+
+    point1 = points[0]
+    point2 = points[1]
+    point3 = points[2]
+
+    vec1_plane = point1 - point2
+    vec2_plane = point3 - point2
+    vec_electron = point_electron - point2
+
+    vec1_norm = np.linalg.norm(vec1_plane)
+    vec2_norm = np.linalg.norm(vec2_plane)
+
+    vec_normale = np.cross(vec1_plane, vec2_plane)/(vec1_norm*vec2_norm)
+    coef_out = np.dot(vec_normale, out_normale)
+
+    if abs(coef_out) != 1:
+
+        raise ValueError(f'Wrong normale: out_normale')
+
+    result = coef_out*np.dot(vec_electron, vec_normale)
+
+    return result
+
 class HalfspaceGeom:
 
     #normales must be vec to outside
@@ -76,6 +100,96 @@ class HalfspaceGeom:
         result = -np.cos(angle)
 
         return result
+
+class Plane:
+
+    def __init__(self, point1, point2, point3, normale):
+
+        self.points = [point1, point2, point3]
+        self.normale = normale
+
+    def get_normale(self):
+
+        return self.normale
+
+    def get_points(self):
+
+        return self.points
+
+    def __str__(self) -> str:
+        
+        return f'points = {self.points}, normales = {self.normale}'
+
+class ÑonvexShape:
+
+    def __init__(self) -> None:
+        
+        self.planes = []
+        self.work_surfaces = []
+
+    def add_plane(self, plane, is_outer):
+
+        self.planes.append(plane)
+
+        if is_outer:
+
+            self.work_surfaces.append(True)
+
+        else:
+
+            self.work_surfaces.append(False)
+
+    def get_name(self):
+
+        return 'ConvexShape'
+
+    def get_params(self):
+
+        return f'planes = {self.planes}'
+
+    def _get_distance(self, other_point):
+
+        distance = np.dot(other_point - self.point, self.normale)
+
+        return distance
+
+    def get_new_point_after_reflect(self, prev_dir, curr_point):
+
+        result = curr_point + 2*np.array([0, 0, (self.point[2] - curr_point[2])])
+
+        return result
+
+    def get_new_dir_after_reflect(self, prev_dir, curr_point):
+
+        for indx, plane in enumerate(self.planes):
+
+            if get_h_tetraedr(plane.get_points(), curr_point, plane.get_normale()) > 0:
+
+                new_dir = 
+
+    def get_status(self, point):
+
+        for indx, plane in enumerate(self.planes):
+
+            if get_h_tetraedr(plane.get_points(), point, plane.get_normale()) > 0:
+
+                if self.work_surfaces[indx]:
+
+                    return STATUS['Exit']
+
+                else:
+
+                    return STATUS['Died']
+
+        return STATUS['Inside']
+
+    def get_cos_angle(self, electron): #return cos for external normal
+
+        angle = electron.get_dir()[1]
+        result = -np.cos(angle)
+
+        return result
+
 
 class PlateGeom:
 
@@ -180,7 +294,7 @@ class Rectangular:
 
     def __init__(self, point1, point2, substrate_normales_indx = [-1]):
 
-        self.normales = [np.array([1, 0, 0]), np.array([-1, 0, 0]), np.array([0, 0, 1]), np.array([0, 0, -1])]
+        self.normales = [np.array([1, 0, 0]), np.array([-1, 0, 0]), np.array([0, 0, 1]), np.array([0, 0, -1]), np.array([0, 1, 0]), np.array([0, -1, 0])]
         self.point1 = point1
         self.point2 = point2
         self.substrate_normales_indx = substrate_normales_indx
@@ -245,6 +359,26 @@ class Rectangular:
 
                 return STATUS['Exit']
 
+        if np.dot(other_point - self.point1, self.normales[4]) > 0:
+
+            if 4 in self.substrate_normales_indx:
+
+                return STATUS['Died']
+
+            else:
+
+                return STATUS['Exit']
+
+        if np.dot(other_point - self.point2, self.normales[5]) > 0:
+
+            if 5 in self.substrate_normales_indx:
+
+                return STATUS['Died']
+
+            else:
+
+                return STATUS['Exit']
+
         return STATUS['Inside']
 
     def get_outer_way(self, curr_point):
@@ -265,6 +399,14 @@ class Rectangular:
 
             return 3
 
+        if curr_point[1] < self.point1[1]:
+
+            return 4
+
+        if curr_point[1] > self.point2[1]:
+
+            return 5
+
         raise ValueError('Coudnt find outer plane')
 
     def get_new_point_after_reflect(self, dir, curr_point):
@@ -280,11 +422,11 @@ class Rectangular:
 
         if outer_normale_indx == 2:
 
-            result = curr_point + 2*np.array([0, 0, curr_point[1] - self.point2[1]])
+            result = curr_point + 2*np.array([0, 0, curr_point[2] - self.point2[2]])
 
         if outer_normale_indx == 3:
 
-            result = curr_point - 2*np.array([0, 0, self.point1[1] - curr_point[1]])
+            result = curr_point - 2*np.array([0, 0, self.point1[2] - curr_point[2]])
 
         return result
 
@@ -313,13 +455,13 @@ class Rectangular:
         outer_normale_indx = self.get_outer_way(electron.get_coor())
 
         curr_dir_phi_pheta = electron.get_dir()
-        
-
         cos_theta_mass = np.cos(curr_dir_phi_pheta[1])
         sin_theta_mass = np.sin(curr_dir_phi_pheta[1])
         cos_psi_mass = np.cos(curr_dir_phi_pheta[0])
+        sin_psi_mass = np.sin(curr_dir_phi_pheta[0])
 
         vx = sin_theta_mass*cos_psi_mass
+        vy = sin_theta_mass*sin_psi_mass
         vz = cos_theta_mass
 
         if outer_normale_indx == 0:
@@ -337,6 +479,14 @@ class Rectangular:
         if outer_normale_indx == 3:
 
             return -vz
+
+        if outer_normale_indx == 4:
+
+            return vy
+
+        if outer_normale_indx == 5:
+
+            return -vy
 
 
 class OneD:

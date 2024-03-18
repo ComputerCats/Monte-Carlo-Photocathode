@@ -106,7 +106,7 @@ def plot_coor_dos(file_name, coor_dos):
     ax.set_ylabel('Coor DOS')
 
     fig.savefig(f'{file_name}')
-'''
+
 def compare_with_exp(way_to, QE):
 
     exp_data = pd.read_csv(way_to, header = None, sep = '; ').to_numpy()
@@ -140,7 +140,7 @@ def compare_with_exp(way_to_exp, QE):
     ax.set_title(' ')
 
     fig.savefig('Comparing.png')
-
+'''
 def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
 
     exp_data = pd.read_csv(way_to_exp, header = None, sep = '; ').to_numpy()

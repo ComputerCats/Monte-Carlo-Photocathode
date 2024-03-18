@@ -34,15 +34,7 @@ def _make_p_l_e_e(single_electron, l_e_e, dt):
 
 def _is_scat(p):
 
-    value = np.random.rand()
-
-    if p < value:
-
-        return False
-
-    else:
-
-        return True
+    return p > np.random.rand()
 
 def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
     
@@ -50,9 +42,9 @@ def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_
 
     for indx, l_e in enumerate(scatterings_l_e_e):
 
-        p = _make_p_l_e_e(single_electron, l_e, dt)
+        p_scat = _make_p_l_e_e(single_electron, l_e, dt)
 
-        if _is_scat(p):
+        if _is_scat(p_scat):
 
             single_electron.add_energy(scatterings_E_l_e_e[indx])
 
