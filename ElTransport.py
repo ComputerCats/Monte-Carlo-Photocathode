@@ -4,19 +4,9 @@ import numpy as np
 
 def _make_new_coor(single_electron, dt): 
 
-    curr_dir = single_electron.get_dir()
-    l_move = single_electron.get_veloicity()*dt
+    l_move = single_electron.get_veloicity_vector()*dt
 
-    cos_theta_mass = np.cos(curr_dir[1])
-    sin_theta_mass = np.sin(curr_dir[1])
-    sin_psi_mass = np.sin(curr_dir[0])
-    cos_psi_mass = np.cos(curr_dir[0])
-
-    dx = l_move*sin_theta_mass*cos_psi_mass
-    dy = l_move*sin_theta_mass*sin_psi_mass
-    dz = l_move*cos_theta_mass
-
-    single_electron.add_coor(np.array([dx, dy, dz]))
+    single_electron.add_coor(l_move)
 
 def _make_p_l_e_e(single_electron, l_e_e, dt):
 
@@ -59,14 +49,28 @@ def _make_new_dir(single_electron):
     new_psi = 2*np.pi*np.random.rand()
     new_theta = np.pi*np.random.rand()
 
-    single_electron.set_dir(np.array([new_psi, new_theta]))
+    module_vel = single_electron.get_veloicity()
 
-def make_initial_dir():
+    vx = module_vel*np.sin(new_theta)*np.cos(new_psi)
+    vy = module_vel*np.sin(new_theta)*np.sin(new_psi)
+    vz = module_vel*np.cos(new_theta)
+
+    single_electron.set_veloicity(np.array([vx, vy, vz]))
+
+def make_initial_dir(single_electron, energy):
 
     new_psi = 2*np.pi*np.random.rand()
     new_theta = np.pi*np.random.rand()
 
-    return np.array([new_psi, new_theta])
+    module_vel = 0.001*np.sqrt(energy*3.2/(single_electron.get_effective_mass()*9.1))
+
+    vx = module_vel*np.sin(new_theta)*np.cos(new_psi)
+    vy = module_vel*np.sin(new_theta)*np.sin(new_psi)
+    vz = module_vel*np.cos(new_theta)
+
+    new_veloicity = np.array([vx, vy, vz])
+
+    return new_veloicity
 
 def transport_process(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
 

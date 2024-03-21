@@ -8,33 +8,33 @@ EXIT_PROCESS_STATUS = {'Out': 'Out', 'Died': 'Died', 'New_iter': 'New_iter'}
 
 def _reflcation_process(geom, single_electron):
 
-    new_dir = geom.get_new_dir_after_reflect(single_electron.get_dir(), single_electron.get_coor())
-    new_coor = geom.get_new_point_after_reflect(single_electron.get_dir(), single_electron.get_coor())
-    single_electron.set_coor(new_coor)
-    single_electron.set_dir(new_dir)
+    new_coors = geom.get_new_coors_after_reflect(single_electron)
+    single_electron.set_coor(new_coors['new_coor'])
+    single_electron.set_veloicity(new_coors['new_dir'])
 
 def _p_exit(E, E_a, cos_angle):
-
+    
     E_exit = E*cos_angle*cos_angle
-
+    
     if E <= 0:
 
         return 0
 
-    if (np.sqrt(E_a/E) < cos_angle) or (E_exit < E_a):
-
-        return 0
-
-    else:
+    if (np.sqrt(E_a/E) < cos_angle) and (E_exit > E_a):
 
         result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
 
         return result
 
+    else:
+
+        return 0
+
 def _is_exit(geom, single_electron, semiconductor):
 
-    prop_exit = _p_exit(single_electron.get_E(), semiconductor.get_E_a(), np.cos(single_electron.get_dir()[1]))
-    return np.random.choice([False, True], p = [1-prop_exit, prop_exit])
+    prop_exit = _p_exit(single_electron.get_E(), semiconductor.get_E_a(), geom.get_cos_angle(single_electron))
+    
+    return prop_exit > np.random.rand()
 
 def _is_low_energy_electron(single_electron, kill_energy):
 
@@ -47,11 +47,11 @@ def _is_low_energy_electron(single_electron, kill_energy):
             return False
 
 def exit_process(geom, single_electron, semiconductor, kill_energy):
-
-    electron_status = geom.get_status(single_electron.get_coor())
+    
+    electron_status = geom.get_status(single_electron)
 
     if _is_low_energy_electron(single_electron, kill_energy):   # low energy case
-
+        
         return EXIT_PROCESS_STATUS['Died']
 
     if electron_status == Geometry.STATUS['Exit']:              # exit process
@@ -71,11 +71,11 @@ def exit_process(geom, single_electron, semiconductor, kill_energy):
         return EXIT_PROCESS_STATUS['Died']
 
     if electron_status == Geometry.STATUS['Inside']:
-
+        
         return EXIT_PROCESS_STATUS['New_iter']
 
     if electron_status == Geometry.STATUS['Reflect']:
-
+        print('Died')
         _reflcation_process(geom, single_electron)
 
         return EXIT_PROCESS_STATUS['New_iter']

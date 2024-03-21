@@ -2,10 +2,10 @@ import numpy as np
 
 class Electrons:
 
-    def __init__(self, x, y, z, psi, theta, E):
+    def __init__(self, x, y, z, vx, vy, vz):
         
-        self.coor = np.array([x, y, z, psi, theta, E])
-
+        self.coor = np.array([x, y, z, vx, vy, vz])
+        
     def set_electron_propities(self, effective_mass):
 
         self.effective_mass = effective_mass
@@ -18,19 +18,29 @@ class Electrons:
     
     def get_E(self):
 
-        return self.coor[-1]
+        return self.effective_mass*1e6*9.1*np.dot(self.coor[3:], self.coor[3:])/3.2
+
+    def set_veloicity(self, new_veloicity):
+
+        self.coor[3:] = new_veloicity
 
     def add_energy(self, E):
 
-        self.coor[-1] += E
+        el_energy = self.get_E()
 
-    def set_E(self, new_energy):
-
-        self.coor[-1] = new_energy
+        self.coor[3:] = np.sqrt((el_energy + E)/el_energy)*self.coor[3:]
 
     def get_veloicity(self):
+        
+        return np.sqrt(np.dot(self.coor[3:], self.coor[3:]))
 
-        return 0.001*np.sqrt(abs(self.coor[-1])*2*1.6/(self.effective_mass*9.1))
+    def get_veloicity_vector(self):
+
+        return self.coor[3:]
+
+    def get_effective_mass(self):
+
+        return self.effective_mass
 
     def get_coor(self):
 
@@ -44,12 +54,6 @@ class Electrons:
 
         self.coor[:3] += adding_part
 
-    def get_dir(self):
 
-        return self.coor[3:5]
-
-    def set_dir(self, new_dir):
-
-        self.coor[3:5] = new_dir
 
 

@@ -13,27 +13,9 @@ def L_2_norm(func, args, min_bound, max_bound):
 
     return norm
 
-def get_h_tetraedr(points, point_electron, out_normale):
+def get_h(point, point_electron, out_normale):
 
-    point1 = points[0]
-    point2 = points[1]
-    point3 = points[2]
-
-    vec1_plane = point1 - point2
-    vec2_plane = point3 - point2
-    vec_electron = point_electron - point2
-
-    vec1_norm = np.linalg.norm(vec1_plane)
-    vec2_norm = np.linalg.norm(vec2_plane)
-
-    vec_normale = np.cross(vec1_plane, vec2_plane)/(vec1_norm*vec2_norm)
-    coef_out = np.dot(vec_normale, out_normale)
-
-    if abs(coef_out) != 1:
-
-        raise ValueError(f'Wrong normale: out_normale')
-
-    result = coef_out*np.dot(vec_electron, vec_normale)
+    result = np.dot(point_electron - point, out_normale)
 
     return result
 
@@ -103,24 +85,24 @@ class HalfspaceGeom:
 
 class Plane:
 
-    def __init__(self, point1, point2, point3, normale):
+    def __init__(self, point, normale):
 
-        self.points = [point1, point2, point3]
+        self.point = point
         self.normale = normale
 
     def get_normale(self):
 
         return self.normale
 
-    def get_points(self):
+    def get_point(self):
 
-        return self.points
+        return self.point
 
     def __str__(self) -> str:
         
         return f'points = {self.points}, normales = {self.normale}'
 
-class ÑonvexShape:
+class ConvexShape:
 
     def __init__(self) -> None:
         
@@ -131,13 +113,7 @@ class ÑonvexShape:
 
         self.planes.append(plane)
 
-        if is_outer:
-
-            self.work_surfaces.append(True)
-
-        else:
-
-            self.work_surfaces.append(False)
+        self.work_surfaces.append(is_outer)
 
     def get_name(self):
 
@@ -147,34 +123,51 @@ class ÑonvexShape:
 
         return f'planes = {self.planes}'
 
-    def _get_distance(self, other_point):
+    def _find_exit_params_plane(self, single_electron):
+        
+        curr_point = single_electron.get_coor()
 
-        distance = np.dot(other_point - self.point, self.normale)
+        h_prev = 1000
 
-        return distance
-
-    def get_new_point_after_reflect(self, prev_dir, curr_point):
-
-        result = curr_point + 2*np.array([0, 0, (self.point[2] - curr_point[2])])
-
-        return result
-
-    def get_new_dir_after_reflect(self, prev_dir, curr_point):
+        exit_indx = 0
 
         for indx, plane in enumerate(self.planes):
 
-            if get_h_tetraedr(plane.get_points(), curr_point, plane.get_normale()) > 0:
+            h = get_h(plane.get_point(), curr_point, plane.get_normale())
 
-                new_dir = 
+            if h > 0 and h_prev > h:
 
-    def get_status(self, point):
+                normale = plane.get_normale()
+                h_prev = h
+                point = plane.get_point()
+                exit_indx = indx
 
-        for indx, plane in enumerate(self.planes):
+        return {'normale': normale, 'h': h_prev, 'point': point, 'indx': exit_indx}
 
-            if get_h_tetraedr(plane.get_points(), point, plane.get_normale()) > 0:
+    def get_new_coors_after_reflect(self, single_electron):
 
-                if self.work_surfaces[indx]:
+        curr_point = single_electron.get_coor()
+        prev_dir = single_electron.get_veloicity_vector()
 
+        reflect_params = self._find_exit_params_plane(single_electron)
+
+        new_dir = prev_dir - 2*np.dot(reflect_params['normale'], prev_dir)*reflect_params['normale']
+        new_coor = curr_point - 2*np.dot(reflect_params['normale'], curr_point - reflect_params['point'])*reflect_params['normale']
+
+        return {'new_coor': new_coor, 'new_dir': new_dir}
+        
+    def get_status(self, single_electron):
+
+        curr_point = single_electron.get_coor()
+
+        for plane in self.planes:
+
+            if get_h(plane.get_point(), curr_point, plane.get_normale()) > 0:
+
+                exit_params = self._find_exit_params_plane(single_electron)
+
+                if self.work_surfaces[exit_params['indx']]:
+                    
                     return STATUS['Exit']
 
                 else:
@@ -185,11 +178,11 @@ class ÑonvexShape:
 
     def get_cos_angle(self, electron): #return cos for external normal
 
-        angle = electron.get_dir()[1]
-        result = -np.cos(angle)
+        reflect_params = self._find_exit_params_plane(electron)
+
+        result = np.dot(electron.get_veloicity_vector(), reflect_params['normale'])/electron.get_veloicity()
 
         return result
-
 
 class PlateGeom:
 

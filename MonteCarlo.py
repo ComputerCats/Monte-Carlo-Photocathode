@@ -71,10 +71,12 @@ class Simulation:
 
         coor = self.coor_DOS[indx_pos,:3]
         energy = np.random.choice(self.energy_DOS[:,0], p=self.energy_DOS[:,1])
-        direction = ElTransport.make_initial_dir()
 
-        single_electron = electron.Electrons(coor[0], coor[1], coor[2], direction[0], direction[1], energy)
+        single_electron = electron.Electrons(coor[0], coor[1], coor[2], 0, 0, 0)
         single_electron.set_electron_propities(self.semiconductor.get_effective_mass())
+
+        veloicity = ElTransport.make_initial_dir(single_electron, energy)
+        single_electron.set_veloicity(veloicity)
 
         return single_electron
 
