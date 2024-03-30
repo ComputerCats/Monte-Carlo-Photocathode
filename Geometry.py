@@ -100,7 +100,6 @@ class Plane:
 
     def __str__(self) -> str:
         
-        return f'points = {self.points}, normales = {self.normale}'
 
 class ConvexShape:
 
