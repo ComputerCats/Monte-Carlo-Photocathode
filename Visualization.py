@@ -159,6 +159,23 @@ def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
 
     fig.savefig('Comparing.png')
 
+def compare_with_exp_and_another_result(QE, another_res, this_res_name, another_res_name):
+
+    fig, ax = plt.subplots()
+
+    ax.plot(QE[:, 0], 100*QE[:, 1], label = this_res_name, color = 'red')
+    ax.scatter(QE[:, 0], 100*QE[:, 1], color = 'red')
+
+    ax.plot(another_res[:, 0], 100*another_res[:, 1], label = another_res_name, color = 'blue')
+    ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'blue')
+
+    ax.grid()
+    ax.set_xlabel('$\hbar\omega$, eV')
+    ax.set_ylabel('QE, %')
+    ax.legend()
+
+    fig.savefig('Comparing.png')
+
 def plot_error(dict_QE, etalon):
 
     fig, ax = plt.subplots()
