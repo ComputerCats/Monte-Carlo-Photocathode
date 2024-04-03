@@ -93,14 +93,22 @@ class Simulation:
         self._end_experiment()
 
     def _run_new_iteration(self):
-        
+        electron_history = []
         single_electron = self._initial_process_single_electron()
-
+        coor = single_electron.get_coor()
+        electron_history.append([coor[0], coor[1], coor[2]])
         for i in range(self.N_iterations):
 
             ElTransport.transport_process(single_electron, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
             electron_status = ElectronExit.exit_process(self.geometry, single_electron, self.semiconductor, self.kill_energy)
-            
+            coor = single_electron.get_coor()
+            prev_coor = electron_history[-1]
+
+            if (prev_coor[0] != coor[0]) and (prev_coor[1] != coor[1]) and (prev_coor[2] != coor[2]):
+
+                electron_history.append([coor[0], coor[1], coor[2]])
+
+            print(single_electron.get_coor())
             if electron_status == EXIT_STATUS['Out']:
 
                 self.exit_electron += 1
@@ -109,6 +117,11 @@ class Simulation:
             if electron_status == EXIT_STATUS['Died']:
 
                 break
+        print('#####')
+        electron_history = np.array(electron_history, dtype = object)
+
+        with open(f'gamma={self.gamma}.npy', 'wb') as f:
+            np.save(f, electron_history)
 
     def _add_params_to_log(self):
 
