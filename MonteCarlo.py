@@ -93,7 +93,7 @@ class Simulation:
         self._end_experiment()
 
     def _run_new_iteration(self):
-
+        
         single_electron = self._initial_process_single_electron()
 
         for i in range(self.N_iterations):
