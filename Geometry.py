@@ -21,10 +21,11 @@ def get_h(point, point_electron, out_normale):
 
 class Plane:
 
-    def __init__(self, point, normale) -> None:
+    def __init__(self, point, normale, plane_name) -> None:
 
         self.point = point
         self.normale = normale
+        self.plane_name = plane_name
 
     def get_normale(self):
 
@@ -36,7 +37,7 @@ class Plane:
 
     def __str__(self) -> str:
         
-        return f'point = {self.get_point()}, normale = {self.get_normale()}'
+        return f'point = {self.get_point()}, normale = {self.get_normale()}, plane_name = {self.plane_name}'
 
 class ConvexShape:
 
@@ -57,7 +58,13 @@ class ConvexShape:
 
     def get_params(self) -> str:
 
-        return f'planes = {self.planes}'
+        res_str = ''
+
+        for plane in self.planes:
+
+            res_str += f' {str(plane)}'
+
+        return res_str
 
     def _get_h_s(self, single_electron):
 
