@@ -36,6 +36,8 @@ def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_
 
         if _is_scat(p_scat):
 
+            if single_electron.get_E() + scatterings_E_l_e_e[indx] <= 0.01: break
+
             single_electron.add_energy(scatterings_E_l_e_e[indx])
 
             new_dir = True
@@ -63,6 +65,10 @@ def make_initial_dir(single_electron, energy):
     new_theta = np.pi*np.random.rand()
 
     module_vel = 0.001*np.sqrt(energy*3.2/(single_electron.get_effective_mass()*9.1))
+
+    if module_vel < 0:
+
+        raise ValueError('Negative energy')
 
     vx = module_vel*np.sin(new_theta)*np.cos(new_psi)
     vy = module_vel*np.sin(new_theta)*np.sin(new_psi)

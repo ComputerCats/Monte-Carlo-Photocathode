@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_exit.py</StartupFile>
+    <StartupFile>test_convex_shape.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -28,11 +28,13 @@
     <Compile Include="ElectronExit.py" />
     <Compile Include="ElTransport.py" />
     <Compile Include="Geometry.py" />
-    <Compile Include="interface.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
     <Compile Include="ParallelMonteCarlo.py" />
     <Compile Include="test_convex_shape.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_electron.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_exit.py">

@@ -144,7 +144,7 @@ def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
 
     fig.savefig('Comparing.png')
 
-def compare_with_another_result(QE, another_res, this_res_name, another_res_name, title):
+def compare_with_another_result(QE, another_res, this_res_name ='', another_res_name='', title=''):
 
     fig, ax = plt.subplots()
 
@@ -153,6 +153,54 @@ def compare_with_another_result(QE, another_res, this_res_name, another_res_name
 
     ax.plot(another_res[:, 0], 100*another_res[:, 1], label = another_res_name, color = 'blue')
     ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'blue')
+
+    ax.grid()
+    ax.set_xlabel('$\hbar\omega$, eV')
+    ax.set_ylabel('QE, %')
+    ax.legend()
+    ax.set_title(title)
+    ax.set_xlim(left = 2.0, right = 2.4)
+    ax.set_ylim(top = 14)
+
+    fig.savefig('Comparing.png')
+
+def compare_with_exp_another_result(way_to_exp, QE, another_res, this_res_name ='', another_res_name='', title=''):
+
+    fig, ax = plt.subplots()
+
+    exp_data = pd.read_csv(way_to_exp, header = None, sep = '; ').to_numpy()
+
+    ax.plot(QE[:, 0], 100*QE[:, 1], label = this_res_name, color = 'red')
+    ax.scatter(QE[:, 0], 100*QE[:, 1], color = 'red')
+
+    ax.plot(another_res[:, 0], 100*another_res[:, 1], label = another_res_name, color = 'blue')
+    ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'blue')
+
+    ax.plot(exp_data[:, 0], exp_data[:, 1], label = 'Experiment', color = 'k')
+    ax.scatter(exp_data[:, 0], exp_data[:, 1], color = 'k')
+
+    ax.grid()
+    ax.set_xlabel('$\hbar\omega$, eV')
+    ax.set_ylabel('QE, %')
+    ax.legend()
+    ax.set_title(title)
+    ax.set_xlim(left = 2.0, right = 2.4)
+    ax.set_ylim(top = 14)
+
+    fig.savefig('Comparing.png')
+
+def compare_three_res(res1, res2, res3, res1_name ='',res2__name='', res3_name ='', title=''):
+
+    fig, ax = plt.subplots()
+
+    ax.plot(res1[:, 0], 100*res1[:, 1], label = res1_name, color = 'red')
+    ax.scatter(res1[:, 0], 100*res1[:, 1], color = 'red')
+
+    ax.plot(res2[:, 0], 100*res2[:, 1], label = res2__name, color = 'blue')
+    ax.scatter(res2[:, 0], 100*res2[:, 1], color = 'blue')
+
+    ax.plot(res3[:, 0], 100*res3[:, 1], label = res3_name, color = 'k')
+    ax.scatter(res3[:, 0], 100*res3[:, 1], color = 'k')
 
     ax.grid()
     ax.set_xlabel('$\hbar\omega$, eV')

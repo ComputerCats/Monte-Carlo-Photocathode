@@ -18,7 +18,7 @@ class Electrons:
     
     def get_E(self):
 
-        return self.effective_mass*1e6*9.1*np.dot(self.coor[3:], self.coor[3:])/3.2
+        return self.effective_mass*1e6*9.1*self.get_veloicity()**2/3.2
 
     def set_veloicity(self, new_veloicity):
 
@@ -27,6 +27,10 @@ class Electrons:
     def add_energy(self, E):
 
         el_energy = self.get_E()
+
+        if el_energy == 0 or el_energy + E < 0:
+
+            raise ValueError(f'Electron energy error, Eel = {el_energy}')
 
         self.coor[3:] = np.sqrt((el_energy + E)/el_energy)*self.coor[3:]
 

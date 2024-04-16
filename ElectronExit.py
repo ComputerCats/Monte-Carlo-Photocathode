@@ -67,7 +67,7 @@ def exit_process(geom, single_electron, semiconductor, kill_energy):
             return EXIT_PROCESS_STATUS['New_iter']
 
     if electron_status == Geometry.STATUS['Died']:              
-
+        
         return EXIT_PROCESS_STATUS['Died']
 
     if electron_status == Geometry.STATUS['Inside']:
@@ -75,7 +75,7 @@ def exit_process(geom, single_electron, semiconductor, kill_energy):
         return EXIT_PROCESS_STATUS['New_iter']
 
     if electron_status == Geometry.STATUS['Reflect']:
-        print('Died')
+        
         _reflcation_process(geom, single_electron)
 
         return EXIT_PROCESS_STATUS['New_iter']
