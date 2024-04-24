@@ -148,11 +148,11 @@ def compare_with_another_result(QE, another_res, this_res_name ='', another_res_
 
     fig, ax = plt.subplots()
 
-    ax.plot(QE[:, 0], 100*QE[:, 1], label = this_res_name, color = 'red')
-    ax.scatter(QE[:, 0], 100*QE[:, 1], color = 'red')
+    ax.plot(QE[:, 0], 100*QE[:, 1], label = this_res_name, color = 'blue')
+    ax.scatter(QE[:, 0], 100*QE[:, 1], color = 'blue')
 
-    ax.plot(another_res[:, 0], 100*another_res[:, 1], label = another_res_name, color = 'blue')
-    ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'blue')
+    ax.plot(another_res[:, 0], 100*another_res[:, 1], label = another_res_name, color = 'red')
+    ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'red')
 
     ax.grid()
     ax.set_xlabel('$\hbar\omega$, eV')
@@ -160,7 +160,6 @@ def compare_with_another_result(QE, another_res, this_res_name ='', another_res_
     ax.legend()
     ax.set_title(title)
     ax.set_xlim(left = 2.0, right = 2.4)
-    ax.set_ylim(top = 14)
 
     fig.savefig('Comparing.png')
 
@@ -209,6 +208,22 @@ def compare_three_res(res1, res2, res3, res1_name ='',res2__name='', res3_name =
     ax.set_title(title)
     ax.set_xlim(left = 2.0, right = 2.4)
     ax.set_ylim(top = 14)
+
+    fig.savefig('Comparing.png')
+
+def plot_p(res, res_name = '', title = ''):
+
+    fig, ax = plt.subplots()
+
+    ax.plot(1000*res[:, 0], 100*res[:, 1], label = res_name, color = 'red')
+    ax.scatter(1000*res[:, 0], 100*res[:, 1], color = 'red')
+
+    ax.grid()
+    ax.set_xlabel('h, nm')
+    ax.set_ylabel('Propability, %')
+    ax.set_xlim(left = 14)
+    ax.legend()
+    ax.set_title(title)
 
     fig.savefig('Comparing.png')
 
