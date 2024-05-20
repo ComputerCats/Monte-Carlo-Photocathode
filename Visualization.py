@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy import interpolate
 
 
 def plot_x_distr(name_pict, electron_gas):
@@ -160,6 +161,7 @@ def compare_with_another_result(QE, another_res, this_res_name ='', another_res_
     ax.legend()
     ax.set_title(title)
     ax.set_xlim(left = 2.0, right = 2.4)
+    ax.set_ylim(top = 16)
 
     fig.savefig('Comparing.png')
 
@@ -207,7 +209,7 @@ def compare_three_res(res1, res2, res3, res1_name ='',res2__name='', res3_name =
     ax.legend()
     ax.set_title(title)
     ax.set_xlim(left = 2.0, right = 2.4)
-    ax.set_ylim(top = 14)
+    ax.set_ylim(top = 16)
 
     fig.savefig('Comparing.png')
 
@@ -241,3 +243,23 @@ def plot_error(dict_QE, etalon):
     ax.grid()
 
     fig.savefig('error.png')
+
+def plot_ratio(QE1, QE2, xlabel = '', ylabel = '', title = ''):
+
+    func_QE1 = interpolate.interp1d(QE1[:,0], QE1[:,1])
+    func_QE2 = interpolate.interp1d(QE2[:,0], QE2[:,1])
+
+    energies = np.linspace(2, 2.4, 100)
+
+    fig, ax = plt.subplots()
+
+    ratio = func_QE1(energies)/func_QE2(energies)
+
+    ax.plot(energies, ratio, color = 'red')
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.grid()
+    ax.set_title(title)
+
+    fig.savefig('Ratio.png')

@@ -102,6 +102,14 @@ class ConvexShape:
 
         return {'normale': exit_plane.get_normale(), 'h': h_s[indx], 'point': exit_plane.get_point(), 'indx': indx}
 
+    def get_normal_out(self, single_electron):
+
+        h_s = self._get_h_s(single_electron)
+        indx = self._get_indx_min_pos_h(h_s)
+        exit_plane = self.planes[indx]
+
+        return exit_plane.get_normale()
+
     def get_new_coors_after_reflect(self, single_electron) -> dict:
 
         curr_point = single_electron.get_coor()
