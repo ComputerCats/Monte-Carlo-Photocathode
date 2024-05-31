@@ -160,7 +160,7 @@ def compare_with_another_result(QE, another_res, this_res_name ='', another_res_
     ax.set_ylabel('QE, %')
     ax.legend()
     ax.set_title(title)
-    ax.set_xlim(left = 2.0, right = 2.4)
+    ax.set_xlim(left = 1.8, right = 2.4)
     ax.set_ylim(top = 16)
 
     fig.savefig('Comparing.png')

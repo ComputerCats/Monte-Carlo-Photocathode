@@ -30,7 +30,6 @@
     <Compile Include="Geometry.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
-    <Compile Include="ParallelMonteCarlo.py" />
     <Compile Include="test_convex_shape.py">
       <SubType>Code</SubType>
     </Compile>

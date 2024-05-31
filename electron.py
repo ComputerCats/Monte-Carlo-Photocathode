@@ -1,5 +1,11 @@
 import numpy as np
 
+#Constants
+
+C_CONST = 2.99792458
+EV_CONST = 1.602176634
+M_E = 9.109
+
 class Electrons:
 
     def __init__(self, x, y, z, vx, vy, vz):
@@ -18,7 +24,7 @@ class Electrons:
     
     def get_E(self):
 
-        return self.effective_mass*1e6*9.1*self.get_veloicity()**2/3.2
+        return self.effective_mass*1e6*M_E*self.get_veloicity()**2/(2*EV_CONST)
 
     def set_veloicity(self, new_veloicity):
 
