@@ -1,3 +1,4 @@
+
 class Semiconductor:
 
     def __init__(self, E_a, E_g, effective_mass):

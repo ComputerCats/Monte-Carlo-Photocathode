@@ -120,7 +120,7 @@ def compare_with_exp(way_to, QE, title):
     ax.grid()
     ax.set_xlabel('$\hbar\omega$, eV')
     ax.set_ylabel('QE, %')
-    ax.set_xlim(left = 2.0, right = 2.4)
+    ax.set_xlim(left = 1.75, right = 2.4)
     ax.set_ylim(top = 14)
     ax.set_title(title)
     ax.legend()

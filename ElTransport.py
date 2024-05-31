@@ -2,6 +2,10 @@ import numpy as np
 
 # life of electron: (x, y, z, psi, theta, E) -> phonon scattering (change angle, change coor, change energy) -> new iter
 
+C_CONST = 2.99792458
+EV_CONST = 1.602176634
+M_E = 9.109
+
 def _make_new_coor(single_electron, dt): 
 
     l_move = single_electron.get_veloicity_vector()*dt
@@ -64,7 +68,7 @@ def make_initial_dir(single_electron, energy):
     new_psi = 2*np.pi*np.random.rand()
     new_theta = np.pi*np.random.rand()
 
-    module_vel = 0.001*np.sqrt(energy*3.2/(single_electron.get_effective_mass()*9.1))
+    module_vel = 0.001*np.sqrt(energy*2*EV_CONST/(single_electron.get_effective_mass()*M_E))
 
     if module_vel < 0:
 

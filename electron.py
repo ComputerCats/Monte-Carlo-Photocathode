@@ -33,7 +33,7 @@ class Electrons:
     def add_energy(self, E):
 
         el_energy = self.get_E()
-
+        
         if el_energy == 0 or el_energy + E < 0:
 
             raise ValueError(f'Electron energy error, Eel = {el_energy}')
