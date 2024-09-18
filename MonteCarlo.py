@@ -99,7 +99,7 @@ class Simulation:
 
         return single_electron.get_E()*(1-cos_out*cos_out)
 
-    def _calculate_emitance(self, ):
+    def _calculate_mean(self, ):
 
         if self.exit_electron != 0:
             return np.sqrt(self.semiconductor.get_effective_mass()*self.emmitance/self.exit_electron)*np.sqrt(3.2/(9.1*3))*1e-2
@@ -143,7 +143,7 @@ class Simulation:
 
     def _end_experiment(self):
         
-        self.final_emmitance = self._calculate_emitance()
+        self.final_emmitance = self._calculate_mean()
         self._add_params_to_log()
         self.log_exp.save_log()
 

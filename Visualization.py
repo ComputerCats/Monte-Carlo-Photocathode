@@ -145,7 +145,7 @@ def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
 
     fig.savefig('Comparing.png')
 
-def compare_with_another_result(QE, another_res, this_res_name ='', another_res_name='', title=''):
+def compare_with_another_result(QE, another_res, this_res_name ='', another_res_name='', title='', top = 18, right = 2.6):
 
     fig, ax = plt.subplots()
 
@@ -160,8 +160,8 @@ def compare_with_another_result(QE, another_res, this_res_name ='', another_res_
     ax.set_ylabel('QE, %')
     ax.legend()
     ax.set_title(title)
-    ax.set_xlim(left = 1.8, right = 2.4)
-    ax.set_ylim(top = 16)
+    ax.set_xlim(left = 1.8, right = right)
+    ax.set_ylim(top = top)
 
     fig.savefig('Comparing.png')
 
