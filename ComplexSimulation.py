@@ -1,10 +1,22 @@
 import numpy as np
-import ElTransport
-import electron
-import ElectronExit
-import log
 import MonteCarlo
 from datetime import datetime
+
+
+def save_spectrum(spectrum, name):
+
+    with open(f'spectrum_{name}.txt', 'w') as f:
+
+        f.write(f'gamma\tQE\tEmmitance\tR\n')
+
+        for res in spectrum:
+
+            gamma = res['gamma']
+            QE = res['QE']
+            Emmitance = res['Emmitance']
+            R = res['R']
+
+            f.write(f'{gamma}\t{QE}\t{Emmitance}\t{R}\n')
 
 def _save_exp_res(res: dict, exp_name: str):
 
@@ -16,25 +28,14 @@ def _save_exp_res(res: dict, exp_name: str):
 
         for key in res:
 
-            f.write(f'{key} = {self.mass_log[key]}\n')
+            f.write(f'{key} = {res[key]}\n')
 
 # only K2CsSb!!!!
-def _calculate_emmitance_gamma(all_emmitance, all_exit_electron):
+def _calculate_emmitance(all_exit_electron, all_emmitance):
     if all_exit_electron != 0:
         return np.sqrt(0.117*all_emmitance/all_exit_electron)*np.sqrt(3.2/(9.1*2.99))*1e-2
     else:
         return 0
-    
-def _calculate_emmitance(N_exit, k_quads):
-    
-    all_exit_electron = 0
-    summ_k_quads = 0
-        
-    for k in k_quads:
-        
-        summ_k_quads += k
-        
-    return calculate_emmitance_gamma(summ_k_quads, all_exit_electron)
 
 class Complex_Simulation:
 
@@ -43,6 +44,7 @@ class Complex_Simulation:
         self.gamma = gamma
         self.simulation_mass = []
         self.N_sim = N_sim
+        self.exp_name = exp_name
 
         for i in range(N_sim):
 
@@ -66,16 +68,21 @@ class Complex_Simulation:
 
         self.mass_dict = mass_dict_params
 
-        if len(mass_dict_params) != self.N_sim:
+        if len(self.mass_dict) != self.N_sim:
 
             raise ValueError('len(mass_dict_params) != len(self.simulation_mass)')
 
-        for indx in range(len(mass_dict_params)):
+        for indx in range(self.N_sim):
 
             curr_sim = self.simulation_mass[indx]
+            curr_sim.set_DOS(energy_DOS, mass_dict_params[indx]['coor_DOS'])
+            curr_sim.set_geometry(mass_dict_params[indx]['geometry'])
 
-            curr_sim.set_semiconductor(mass_dict_params['semiconductor_name'], mass_dict_params['semiconductor'])
-            curr_sim.set_DOS(energy_DOS, mass_dict_params['coor_DOS'])
+    def add_l_e_e_scattering(self, scat_func, delta_E):
+
+        for sim in self.simulation_mass:
+
+            sim.add_l_e_e_scattering(scat_func, delta_E)
 
     def run_simulation(self):
 
@@ -96,32 +103,38 @@ class Complex_Simulation:
         N_el_exit = 0
         k_quads = 0
 
+        R = self.mass_dict[0]['R']
+
+
         for indx in range(self.N_sim):
 
             curr_sim = self.simulation_mass[indx]
-            curr_dict_param = self.mass_dict[indx]['Coor_distr']
+            curr_dict_param = self.mass_dict[indx]
             p_exit = curr_sim.get_results()
-            Abs = (1-curr_dict_param['Coor_distr']['R'])
-            p = curr_dict_param['Coor_distr']['p']
-            emmitance_mass.append(self.simulation_mass[indx].get_emittance())  
+            Abs = (1-curr_dict_param['R'])
+            p = curr_dict_param['p']
+            emmitance_mass.append(curr_sim.get_emittance())  
 
             QE += Abs*p*p_exit
             N_el_exit += p_exit*self.N_el
+
             p_transports.append(p_exit)
-            p_intensity.append(curr_dict_param['Coor_distr']['p']))
-            k_quads += self.simulation_mass[indx].get_emittance()
-            emmitans_mass.append(self.simulation_mass[indx].get_emittance())
+            p_intensity.append(curr_dict_param['p'])
+            k_quads += curr_sim.get_emittance()
 
         emmitance = _calculate_emmitance(N_el_exit, k_quads)
 
-        res = ['gamma': self.gamma,
+        res = {'gamma': self.gamma,
               'QE': QE,
              'Emmitance': emmitance,
              'p_intensity': p_intensity,
              'p_transports': p_transports,
              'N_el_exit': N_el_exit,
              'R': R,
-             'part_emmitance': emmitance_mass
-             ]
+             'part_emmitance': emmitance_mass}
+
+        _save_exp_res(res, self.exp_name)
+
+        return res
 
 

@@ -12,7 +12,7 @@ class Electrons:
         
         self.coor = np.array([x, y, z, vx, vy, vz])
         
-    def set_electron_propities(self, effective_mass):
+    def set_electron_properties(self, effective_mass):
 
         self.effective_mass = effective_mass
 
@@ -34,7 +34,7 @@ class Electrons:
 
         el_energy = self.get_E()
         
-        if el_energy == 0 or el_energy + E < 0:
+        if el_energy + E <= 0:
 
             raise ValueError(f'Electron energy error, Eel = {el_energy}')
 

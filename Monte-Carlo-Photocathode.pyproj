@@ -23,6 +23,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ComplexSimulation.py" />
     <Compile Include="Distributions.py" />
     <Compile Include="electron.py" />
     <Compile Include="ElectronExit.py" />

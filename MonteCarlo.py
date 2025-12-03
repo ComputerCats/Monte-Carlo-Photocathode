@@ -8,7 +8,7 @@ EXIT_STATUS= ElectronExit.EXIT_PROCESS_STATUS
 
 def make_console_log(i, exited_electrons, initial_electrons):
 
-    print(f'Calculation progress: {round(i/initial_electrons, 3)}')
+    print(f'Calculation progress: {100*round(i/initial_electrons, 3)} %')
     print(f'Curr Yield: {round(exited_electrons/initial_electrons*100, 1)} %')
 
 class Simulation:
@@ -73,7 +73,7 @@ class Simulation:
         energy = np.random.choice(self.energy_DOS[:,0], p=self.energy_DOS[:,1])
 
         single_electron = electron.Electrons(coor[0], coor[1], coor[2], 0, 0, 0)
-        single_electron.set_electron_propities(self.semiconductor.get_effective_mass())
+        single_electron.set_electron_properties(self.semiconductor.get_effective_mass())
 
         veloicity = ElTransport.make_initial_dir(single_electron, energy)
         single_electron.set_veloicity(veloicity)
@@ -136,7 +136,7 @@ class Simulation:
 
         for indx, delta_E in enumerate(self.scatterings_E_l_e_e):
 
-            self.log_exp._add_str_to_log('scattering ', f'delta E = {delta_E} l (0.5 ev) = {self.scatterings_l_e_e[indx](0.5)}')
+            self.log_exp._add_str_to_log('scattering ', f'delta E = {delta_E} l (0.5 ev) = {self.scatterings_l_e_e[indx](0.5)}\n')
 
         self.log_exp._add_str_to_log('QE_=_', f'{self.get_results()}')
         self.log_exp._add_str_to_log('Emmitance_=_', f'{self.final_emmitance}')

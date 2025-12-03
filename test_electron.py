@@ -6,7 +6,7 @@ import numpy as np
 def _initial_process_single_electron(coor, energy, effective_mass):
 
     single_electron = electron.Electrons(coor[0], coor[1], coor[2], 0, 0, 0)
-    single_electron.set_electron_propities(effective_mass)
+    single_electron.set_electron_properties(effective_mass)
 
     veloicity = ElTransport.make_initial_dir(single_electron, energy)
     single_electron.set_veloicity(veloicity)
