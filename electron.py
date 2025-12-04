@@ -6,15 +6,87 @@ C_CONST = 2.99792458
 EV_CONST = 1.602176634
 M_E = 9.109
 
+def _check_sizes(N_el, mass2):
+
+    if N_el != mass2.shape[0]:
+
+        raise ValueError('Not equal sizes')
+
 class Electrons:
 
-    def __init__(self, x, y, z, vx, vy, vz):
+    # [x, y, z, vx, vy, vz, {0 or 1}]
+    # last column - "Is electron in simulation (0), if 1: electron exited or died"
+
+    def __init__(self, N_el_in_array: int):
+
+        if N_el_in_array <= 0:
+
+            raise ValueError('N_el_in_array must be grater than zero')
+
+        self.N_el_in_array = N_el_in_array
         
-        self.coor = np.array([x, y, z, vx, vy, vz])
-        
+        self.coor = np.zeros((N_el_in_array, 7))
+
+    def set_veloicity(self, new_veloicity, indx_el = None):
+
+        if indx_el == None:
+            _check_sizes(self.N_el_in_array, new_veloicity)
+
+            self.coor[:, 3:-1] = new_veloicity
+        else:
+            self.coor[indx_el, 3:-1] = new_veloicity
+
     def set_electron_properties(self, effective_mass):
 
+        if effective_mass <= 0:
+
+            raise ValueError('Effective mass must be positive')
+
         self.effective_mass = effective_mass
+
+    def set_coor(self, new_coor, indx_el = None):
+
+        if indx_el == None:
+
+            _check_sizes(self.N_el_in_array, new_coor)
+            self.coor[:, :-1] = new_coor
+
+        else:
+
+            self.coor[indx_el, :-1] = new_coor
+
+    def set_xcoor(self, new_xcoor, indx_el = None):
+
+        if indx_el == None:
+
+            _check_sizes(self.N_el_in_array, new_xcoor)
+            self.coor[:, :3] = new_xcoor
+
+        else:
+
+            self.coor[indx_el, :3] = new_xcoor
+
+    def set_electron_flags(self, new_flags, indx_el = None):
+        if indx_el == None:
+            _check_sizes(self.N_el_in_array, new_flags)
+            self.coor[:, -1] = new_flags
+        else:
+            self.coor[indx_el, -1] = new_flags
+
+    def get_electron_flags(self, indx_el = None):
+
+        if indx_el == None:
+            return self.coor[:, -1]
+        else:
+            return self.coor[indx_el, -1]
+
+    def get_xcoor(self, indx_el = None):
+
+        if indx_el == None:
+
+            return self.coor[:, :3]
+        else:
+            self.coor[indx_el, :3]
 
     def get_log(self):
 
@@ -22,48 +94,69 @@ class Electrons:
     
         return log
     
-    def get_E(self):
+    def get_E(self, indx_el = None):
 
-        return self.effective_mass*1e6*M_E*self.get_veloicity()**2/(2*EV_CONST)
+        module_veloicity = self.get_module_veloicity(indx_el)
 
-    def set_veloicity(self, new_veloicity):
+        return self.effective_mass*1e6*M_E*module_veloicity*module_veloicity/(2*EV_CONST)
 
-        self.coor[3:] = new_veloicity
+    def get_N_el_in_ar(self):
 
-    def add_energy(self, E):
+        return self.N_el_in_array
 
-        el_energy = self.get_E()
+    def get_module_veloicity(self, indx_el = None):
+        if indx_el == None:
+            vx = self.coor[:, 3]
+            vy = self.coor[:, 4]
+            vz = self.coor[:, 5]
+
+        else:
+            vx = self.coor[indx_el, 3]
+            vy = self.coor[indx_el, 4]
+            vz = self.coor[indx_el, 5]
         
-        if el_energy + E <= 0:
+        return np.sqrt(vx*vx + vy*vy + vz*vz)
 
-            raise ValueError(f'Electron energy error, Eel = {el_energy}')
+    def get_veloicity_vector(self, indx_el = None):
 
-        self.coor[3:] = np.sqrt((el_energy + E)/el_energy)*self.coor[3:]
+        if indx_el == None:
 
-    def get_veloicity(self):
-        
-        return np.sqrt(np.dot(self.coor[3:], self.coor[3:]))
+            return self.coor[:, 3:-1]
 
-    def get_veloicity_vector(self):
+        else:
 
-        return self.coor[3:]
+            return self.coor[indx_el, 3:-1]
 
     def get_effective_mass(self):
 
         return self.effective_mass
 
-    def get_coor(self):
+    def get_coor(self, indx_el = None):
 
-        return self.coor[:3]
+        if indx_el == None:
+            return self.coor[:, :-1]
 
-    def set_coor(self, new_coor):
+        else:
+            return self.coor[indx_el, :-1]
 
-        self.coor[:3] = new_coor
+    def add_coor(self, shift):
+        _check_sizes(self.N_el_in_array, shift)
 
-    def add_coor(self, adding_part):
+        self.coor[:, :3] += shift
 
-        self.coor[:3] += adding_part
+    def add_energy(self, E):
+        _check_sizes(self.N_el_in_array, E)
 
+        el_energy = self.get_E()
+
+        self.coor[3:-1] = np.sqrt((el_energy + E)/el_energy)*self.coor[3:-1]
+
+    def is_end(self):
+
+        return np.all(self.coor[:, -1] == 1)
+
+    def kill_electron(self, indx_el):
+        self.coor[indx_el, -1] = 0
 
 
 

@@ -2,84 +2,60 @@ import numpy as np
 import Geometry
 import ElTransport as eltrans
 
-#Geometry.STATUS = {'Exit': 'Exit', 'Outside': 'Outside','Inside': 'Inside','Reflect': 'Reflect', 'Died': 'Died'}
-
-EXIT_PROCESS_STATUS = {'Out': 'Out', 'Died': 'Died', 'New_iter': 'New_iter'}
-
-def _reflcation_process(geom, single_electron):
-
-    new_coors = geom.get_new_coors_after_reflect(single_electron)
-    single_electron.set_coor(new_coors['new_coor'])
-    single_electron.set_veloicity(new_coors['new_dir'])
-
 def _p_exit(E, E_a, cos_angle):
     
     E_exit = E*cos_angle*cos_angle
-    
-    if E <= 0:
 
-        return 0
+    cond_out = (np.sqrt(E_a/E) < cos_angle) * (E_exit > E_a)
 
-    if (np.sqrt(E_a/E) < cos_angle) and (E_exit > E_a):
+    result = cond_out * 4*np.sqrt(E_exit*(np.abs(E_exit-E_a)))/(np.sqrt(np.abs(E_exit-E_a))+np.sqrt(E_exit))**2
 
-        result = 4*np.sqrt(E_exit*(E_exit-E_a))/(np.sqrt(E_exit-E_a)+np.sqrt(E_exit))**2
+    return result
 
-        return result
+def is_exit(geom, electrons, semiconductor, indx_el: int) -> int:
 
-    else:
-
-        return 0
-
-def _is_exit(geom, single_electron, semiconductor):
-
-    prop_exit = _p_exit(single_electron.get_E(), semiconductor.get_E_a(), geom.get_cos_angle(single_electron))
+    prop_exit = _p_exit(electrons.get_E(indx_el), semiconductor.get_E_a(), geom.get_cos_angle(electrons, indx_el))
     
     return prop_exit > np.random.rand()
 
-def _is_low_energy_electron(single_electron, kill_energy):
+def _is_not_low_energy_electron(electrons, kill_energy):
 
-        if single_electron.get_E() < kill_energy:
+        return electrons.get_E() > kill_energy
 
-            return True
+def _get_this_electron_emitance(self, electrons, el_indx: int, out_plane_indx: int):
 
-        else:
+    cos_out = self.geometry.get_cos_angle(electrons, el_indx, out_plane_indx)
 
-            return False
+    return electrons.get_E(el_indx)*(1-cos_out*cos_out)
 
-def exit_process(geom, single_electron, semiconductor, kill_energy):
+def exit_process(geom, electrons, semiconductor, kill_energy, N_exit, emmitance):
     
-    electron_status = geom.get_status(single_electron)
+    # electron_status = 1 if Exit
+    # electron_status = 0 if Inside
 
-    if _is_low_energy_electron(single_electron, kill_energy):   # low energy case
-        
-        return EXIT_PROCESS_STATUS['Died']
+    electrons.set_electron_flags(electrons.get_electron_flags()*_is_not_low_energy_electron(electrons, kill_energy))   # low energy case
 
-    if electron_status == Geometry.STATUS['Exit']:              # exit process
-        
-        if _is_exit(geom, single_electron, semiconductor):
-            
-            return EXIT_PROCESS_STATUS['Out']
+    N_el_sub_sim = electrons.get_N_el_in_ar()
 
-        else:
+    for indx_el in range(N_el_sub_sim):
 
-            _reflcation_process(geom, single_electron)
+        if not electrons.get_flags(indx_el):
 
-            return EXIT_PROCESS_STATUS['New_iter']
+            indx_out_plane = geom.get_out_plane()
 
-    if electron_status == Geometry.STATUS['Died']:              
-        
-        return EXIT_PROCESS_STATUS['Died']
+            if indx_out_plane > -1: # refactor it!
 
-    if electron_status == Geometry.STATUS['Inside']:
-        
-        return EXIT_PROCESS_STATUS['New_iter']
+                type_exit_plane = geom.get_type_exit_plane(indx_out_plane)
+                if type_exit_plane:
+                    if is_exit(geom, electrons, semiconductor, indx_el):
 
-    if electron_status == Geometry.STATUS['Reflect']:
-        
-        _reflcation_process(geom, single_electron)
+                        N_exit += type_exit_plane*1
+                        emmitance += type_exit_plane*_get_this_electron_emitance(electrons, indx_el, indx_out_plane)
 
-        return EXIT_PROCESS_STATUS['New_iter']
+                else:
+                    electrons.kill_electron(indx_el)
 
+    return {'N_exit': N_exit, 'Emmitance': emmitance}
 
             
 

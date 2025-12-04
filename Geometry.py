@@ -1,8 +1,10 @@
 import numpy as np
 import scipy.integrate as integrate
+import ElectronExit
 
-STATUS = {'Exit': 'Exit', 'Outside': 'Outside','Inside': 'Inside','Reflect': 'Reflect', 'Died': 'Died'}
+STATUS = {'Exit': 1, 'Died': 0}
 
+'''
 def trans_sphere_to_dec_norm(psi, theta):
 
     return np.array([np.cos(psi)*np.sin(theta), np.sin(psi)*np.sin(theta), np.cos(theta)])
@@ -11,13 +13,12 @@ def L_2_norm(func, args, min_bound, max_bound):
 
     norm = integrate.quad(func, min_bound, max_bound, args = args)[0]
 
-    return norm
+    return norm'''
 
-def get_h(point, point_electron, out_normale):
+def _reflcation_process(geom, electrons, indx_electron):
 
-    result = np.dot(point_electron - point, out_normale)
-
-    return result
+    new_coors = geom.get_new_coors_after_reflect(electrons, indx_electron)
+    electrons.set_individual_coor(new_coors['new_coor'], indx_electron)
 
 class Plane:
 
@@ -34,6 +35,12 @@ class Plane:
     def get_point(self):
 
         return self.point
+
+    def get_distance(self, coor):
+
+        result = np.dot(self.point - coor, self.normale)
+
+        return result
 
     def __str__(self) -> str:
         
@@ -66,80 +73,53 @@ class ConvexShape:
 
         return res_str
 
-    def _get_h_s(self, single_electron):
+    def get_out_plane(self, electrons, el_indx: int) -> int:
 
-        coor = single_electron.get_coor()
+        hs = []
+        min_max_positive_value = -1
+        indx_min_max_positive_value = -1
 
-        N_planes = len(self.planes)
+        xcoor = electrons.get_xcoor(el_indx)
 
-        h_s = np.array([get_h(self.planes[i].get_point(), coor, self.planes[i].get_normale()) for i in range(N_planes)])
+        for indx, plane in enumerate(self.planes):
 
-        return h_s
+            h = plane.get_distance(xcoor)
 
-    def _get_indx_min_pos_h(self, h_s):
+            if h >= 0 and h > min_max_positive_value:
 
-        min_pos_value = np.max(h_s)
-        indx_min_pos_value = 0
+                min_max_positive_value = h
+                indx_min_max_positive_value = indx
 
-        if min_pos_value < 0:
+        return indx_min_max_positive_value
 
-            raise ValueError('Geometry Error')
+    def get_type_exit_plane(self, indx_plane: int) -> int:
 
-        for indx, value in enumerate(h_s):
+        if indx_plane == -1:
 
-            if value > 0 and value <= min_pos_value:
+            raise ValueError('Electron inside and cannt escape')
 
-                indx_min_pos_value = indx
-                min_pos_value = value
+        return self.planes[indx_plane]
 
-        return indx_min_pos_value
+    def get_new_coors_after_reflect(self, electrons, el_indx: int, indx_out: int):
 
-    def _find_exit_params_plane(self, single_electron) -> dict:
+        if indx_out == -1:
+
+            raise ValueError('Electron inside and didnt scattering')
+
+        exit_plane = self.planes[indx_out]
+        normale = exit_plane.get_normale()
+        point = exit_plane.get_point()
+
+        curr_point = electrons.get_xcoor(el_indx)
+        prev_dir = electrons.get_veloicity(el_indx)
+
+        new_dir = prev_dir - 2*np.dot(normale, prev_dir)*normale
+        new_coor = curr_point - 2*np.dot(normale, curr_point - point)*normale
+
+        return np.hstack(new_coor, new_dir)
         
-        h_s = self._get_h_s(single_electron)
-        indx = self._get_indx_min_pos_h(h_s)
-        exit_plane = self.planes[indx]
+    def get_cos_angle(self, electrons, el_indx: int, indx_out: int): #return cos for external normal
 
-        return {'normale': exit_plane.get_normale(), 'h': h_s[indx], 'point': exit_plane.get_point(), 'indx': indx}
-
-    def get_normal_out(self, single_electron):
-
-        h_s = self._get_h_s(single_electron)
-        indx = self._get_indx_min_pos_h(h_s)
-        exit_plane = self.planes[indx]
-
-        return exit_plane.get_normale()
-
-    def get_new_coors_after_reflect(self, single_electron) -> dict:
-
-        curr_point = single_electron.get_coor()
-        prev_dir = single_electron.get_veloicity_vector()
-
-        reflect_params = self._find_exit_params_plane(single_electron)
-
-        new_dir = prev_dir - 2*np.dot(reflect_params['normale'], prev_dir)*reflect_params['normale']
-        new_coor = curr_point - 2*np.dot(reflect_params['normale'], curr_point - reflect_params['point'])*reflect_params['normale']
-
-        return {'new_coor': new_coor, 'new_dir': new_dir}
-        
-    def get_status(self, single_electron) -> str:
-
-        curr_point = single_electron.get_coor()
-
-        for plane in self.planes:
-
-            if get_h(plane.get_point(), curr_point, plane.get_normale()) > 0:
-                
-                exit_params = self._find_exit_params_plane(single_electron)
-
-                return self.work_surfaces[exit_params['indx']]
-
-        return STATUS['Inside']
-
-    def get_cos_angle(self, electron): #return cos for external normal
-
-        reflect_params = self._find_exit_params_plane(electron)
-
-        result = np.dot(electron.get_veloicity_vector(), reflect_params['normale'])/electron.get_veloicity()
+        result = np.dot(electrons.get_veloicity(el_indx), self.planes[indx_out].get_normale())/electrons.get_module_veloicity(el_indx)
 
         return result

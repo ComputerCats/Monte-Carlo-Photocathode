@@ -6,23 +6,15 @@ C_CONST = 2.99792458
 EV_CONST = 1.602176634
 M_E = 9.109
 
-def _make_new_coor(single_electron, dt): 
+def _make_new_coor(electrons, dt): 
 
-    l_move = single_electron.get_veloicity_vector()*dt
+    l_move = electrons.get_veloicity_vector()*dt
 
-    single_electron.add_coor(l_move)
+    electrons.add_coor(l_move)
 
-def _make_p_l_e_e(single_electron, l_e_e, dt):
+def _make_p_l_e_e(electrons, indx_el, l_e_e, dt):
 
-    p = 1 - np.exp(-single_electron.get_veloicity()*dt/l_e_e(single_electron.get_E()))
-
-    if p > 1:
-        
-        raise ValueError('p scat must be less then 1')
-
-    if p < 0:
-        
-        raise ValueError('p scat must be bigger then 0')
+    p = 1 - np.exp(-electrons.get_module_veloicity(indx_el)*dt/l_e_e(electrons.get_E(indx_el)))
 
     return p
 
@@ -30,60 +22,55 @@ def _is_scat(p):
 
     return p > np.random.rand()
 
-def _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
+def _make_scatterings(electrons, indx_el, dt, scatterings_l_e_e, scatterings_E_l_e_e):
     
     new_dir = False
 
     for indx, l_e in enumerate(scatterings_l_e_e):
 
-        p_scat = _make_p_l_e_e(single_electron, l_e, dt)
+        p_scat = _make_p_l_e_e(electrons, indx_el, l_e, dt)
 
         if _is_scat(p_scat):
 
-            if single_electron.get_E() + scatterings_E_l_e_e[indx] <= 0.01: break
+            #if electrons.get_E(indx_el) + scatterings_E_l_e_e[indx] <= 0.01: break #????
 
-            single_electron.add_energy(scatterings_E_l_e_e[indx])
+            electrons.add_energy(scatterings_E_l_e_e[indx])
 
             new_dir = True
 
     if new_dir:
 
-        _make_new_dir(single_electron)
+        _make_new_dir(electrons, indx_el)
 
-def _make_new_dir(single_electron):
+def _make_new_dir(electrons, el_indx):
 
     new_psi = 2*np.pi*np.random.rand()
     new_theta = np.pi*np.random.rand()
 
-    module_vel = single_electron.get_veloicity()
+    module_vel = electrons.get_veloicity(el_indx)
 
     vx = module_vel*np.sin(new_theta)*np.cos(new_psi)
     vy = module_vel*np.sin(new_theta)*np.sin(new_psi)
     vz = module_vel*np.cos(new_theta)
 
-    single_electron.set_veloicity(np.array([vx, vy, vz]))
+    electrons.set_veloicity(np.array([vx, vy, vz]), el_indx)
 
-def make_initial_dir(single_electron, energy):
+def make_initial_veloicity(electrons, energy):
 
-    new_psi = 2*np.pi*np.random.rand()
-    new_theta = np.pi*np.random.rand()
+    vec = np.random.normal(0, 1, (electrons.get_N_el_in_ar(), 3))
+    
+    # Нормализуем каждый вектор к длине 1
+    norms = np.linalg.norm(vec, axis=1, keepdims=True)
+    unit_vectors = vec / norms
 
-    module_vel = 0.001*np.sqrt(energy*2*EV_CONST/(single_electron.get_effective_mass()*M_E))
+    module_vel = 1e-3*np.sqrt(energy*2*EV_CONST/(electrons.get_effective_mass()*M_E))
 
-    if module_vel < 0:
+    return module_vel
 
-        raise ValueError('Negative energy')
+def transport_process(electrons, el_indx, dt, scatterings_l_e_e, scatterings_E_l_e_e):
 
-    vx = module_vel*np.sin(new_theta)*np.cos(new_psi)
-    vy = module_vel*np.sin(new_theta)*np.sin(new_psi)
-    vz = module_vel*np.cos(new_theta)
-
-    new_veloicity = np.array([vx, vy, vz])
-
-    return new_veloicity
-
-def transport_process(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e):
-
-    _make_new_coor(single_electron, dt)
-    _make_scatterings(single_electron, dt, scatterings_l_e_e, scatterings_E_l_e_e)
+    _make_new_coor(electrons, dt)
+    
+    for indx_el in range(electrons.get_N_el_in_ar()):
+        _make_scatterings(electrons, el_indx, dt, scatterings_l_e_e, scatterings_E_l_e_e)
 

@@ -45,12 +45,13 @@ class Simulation:
         self.coor_DOS = coor_DOS
 
     #dt fs
-    def set_calc_params(self, dt, N, N_iterations, kill_energy):
+    def set_calc_params(self, dt, N_subsim, N_el_in_subsim, N_iterations, kill_energy):
 
         self.N_iterations = N_iterations
-        self.initial_N_electrons = N
         self.kill_energy = kill_energy
         self.dt = dt
+        self.N_subsim = N_subsim
+        self.n_electrons_in_subsim = N_el_in_subsim
 
     def add_l_e_e_scattering(self, l_e_e, delta_E):
 
@@ -61,43 +62,38 @@ class Simulation:
 
         self.geometry = geometry
 
-    def _initial_process_single_electron(self):
+    def _initial_process_electron(self):
 
-        #electron columns = [x, y, z, phi (0, 2pi), psi (0, pi), E]
+        #electron columns = [x, y, z, vx, vy, vz, {0 or 1}]
+
+        electrons = electron.Electrons(self.n_electrons_in_subsim)
+        electrons.set_electron_properties(self.semiconductor.get_effective_mass())
 
         numbers_of_position = range(0, self.coor_DOS.shape[0])
+        for indx_el in range(self.n_electrons_in_subsim):
+            indx_pos = np.random.choice(numbers_of_position, p=self.coor_DOS[:, -1].reshape(1, -1)[0])
 
-        indx_pos = np.random.choice(numbers_of_position, p=self.coor_DOS[:, -1].reshape(1, -1)[0])
+            coor = self.coor_DOS[indx_pos,:3]
+            energy = np.random.choice(self.energy_DOS[:,0], size = (self.n_electrons_in_subsim, 3), p=self.energy_DOS[:,1])
 
-        coor = self.coor_DOS[indx_pos,:3]
-        energy = np.random.choice(self.energy_DOS[:,0], p=self.energy_DOS[:,1])
+            electrons.set_xcoor(np.array([coor[0], coor[1], coor[2]]))
+        
+            veloicity = ElTransport.make_initial_veloicity(electrons, energy)
 
-        single_electron = electron.Electrons(coor[0], coor[1], coor[2], 0, 0, 0)
-        single_electron.set_electron_properties(self.semiconductor.get_effective_mass())
-
-        veloicity = ElTransport.make_initial_dir(single_electron, energy)
-        single_electron.set_veloicity(veloicity)
-
-        return single_electron
+        return electrons
 
     def run_simulation(self):
 
         self.exit_electron = 0
         self.emmitance = 0
 
-        for i in range(self.initial_N_electrons):
+        for i in range(self.N_subsim):
 
             make_console_log(i, self.exit_electron, self.initial_N_electrons)
 
             self._run_new_iteration()
 
         self._end_experiment()
-
-    def _get_this_electron_emitance(self, single_electron):
-
-        cos_out = self.geometry.get_cos_angle(single_electron)
-
-        return single_electron.get_E()*(1-cos_out*cos_out)
 
     def _calculate_mean(self, ):
 
@@ -107,27 +103,23 @@ class Simulation:
             return 0
 
     def _run_new_iteration(self):
-        single_electron = self._initial_process_single_electron()
+        electrons = self._initial_process_electrons()
 
-        for i in range(self.N_iterations):
+        for i in range(self.N_iterations): #time
 
-            ElTransport.transport_process(single_electron, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
-            electron_status = ElectronExit.exit_process(self.geometry, single_electron, self.semiconductor, self.kill_energy)
+            ElTransport.transport_process(electrons, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
+                
+            res_iter = ElectronExit.exit_process(self.geometry, electrons, self.semiconductor, self.kill_energy)
 
-            if electron_status == EXIT_STATUS['Out']:
-                self.emmitance += self._get_this_electron_emitance(single_electron)
-                self.exit_electron += 1
-                break
-
-            if electron_status == EXIT_STATUS['Died']:
-
-                break
+            self.exit_electron += res_iter['N_exit']
+            self.emmitance += res_iter['Emmitance']
 
     def _add_params_to_log(self):
 
         self.log_exp._add_str_to_log('dt', f'{self.dt}')
         self.log_exp._add_str_to_log('N_iterations', f'{self.N_iterations}')
-        self.log_exp._add_str_to_log('initial_N_electrons', f'{self.initial_N_electrons}')
+        self.log_exp._add_str_to_log('n_electrons_in_subsim', f'{self.n_electrons_in_subsim}')
+        self.log_exp._add_str_to_log('N_subsim', f'{self.N_subsim}')
         self.log_exp._add_str_to_log('kill_energy', f'{self.kill_energy}')
 
         self.log_exp._add_str_to_log('geometry', f'{self.geometry.get_name()}, params = {self.geometry.get_params()}')
