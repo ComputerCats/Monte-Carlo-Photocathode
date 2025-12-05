@@ -1,6 +1,6 @@
 import numpy as np
 
-# life of electron: (x, y, z, psi, theta, E) -> phonon scattering (change angle, change coor, change energy) -> new iter
+# life of electron: (x, y, z, vx, vy, vz, {0, 1}) -> phonon scattering (change velocity (if needed), change coor) -> new iter
 
 C_CONST = 2.99792458
 EV_CONST = 1.602176634
@@ -8,13 +8,15 @@ M_E = 9.109
 
 def _make_new_coor(electrons, dt): 
 
-    l_move = electrons.get_velocity()*dt
+    indx_alive = electrons.get_flags() < 1
 
-    electrons.add_coor(l_move)
+    l_move = electrons.get_velocity(indx_alive)*dt
 
-def _make_p_l_e_e(electrons, indx_el, l_e_e, dt):
+    electrons.add_coor(l_move, indx_alive)
 
-    p = 1 - np.exp(-electrons.get_module_velocity(indx_el)*dt/l_e_e(electrons.get_E(indx_el)))
+def _make_p_l_e_e(electrons, l_e_e, dt):
+
+    p = 1 - np.exp(-electrons.get_module_velocity()*dt/l_e_e(electrons.get_E()))
 
     return p
 
@@ -22,44 +24,44 @@ def _is_scat(p):
 
     return p > np.random.rand()
 
-def _make_scatterings(electrons, indx_el, dt, scatterings_l_e_e, scatterings_E_l_e_e):
+def _make_scatterings(electrons, dt, scatterings_l_e_e, scatterings_E): # TEST IT
     
-    new_dir = False
+    n_electrons = electrons.get_N_el()
+    n_scat = len(scatterings_l_e_e)
+
+    mass_el_scat = np.zeros((n_electrons, n_scat)).astype(bool)
 
     for indx, l_e in enumerate(scatterings_l_e_e):
 
-        p_scat = _make_p_l_e_e(electrons, indx_el, l_e, dt)
+        mass_el_scat[:, indx] = _make_p_l_e_e(electrons, l_e, dt) > np.random.rand(1, n_electrons)
 
-        if _is_scat(p_scat):
-
-            if electrons.get_E(indx_el) + scatterings_E_l_e_e[indx] <= 0.01: break #????
-
-            electrons.add_energy(scatterings_E_l_e_e[indx], indx_el)
-
-            new_dir = True
-
-    if new_dir:
-
-        _make_new_dir(electrons, indx_el)
-
-def _make_new_dir(electrons, el_indx):
-
-    new_psi = 2*np.pi*np.random.rand()
-    new_theta = np.pi*np.random.rand()
+    any_scattering = ((mass_el_scat*(electrons.get_flags()).astype(bool).reshape(-1, 1)).any(axis=1))
     
-    module_vel = electrons.get_module_velocity(el_indx)
+    if np.any(any_scattering):
 
-    vx = module_vel*np.sin(new_theta)*np.cos(new_psi)
-    vy = module_vel*np.sin(new_theta)*np.sin(new_psi)
-    vz = module_vel*np.cos(new_theta)
+        N_el_have_scat = len(np.where(any_scattering)[0])
+        indx_scat = np.where(any_scattering)[0]
+        new_energy = np.zeros((N_el_have_scat, 1))
 
-    electrons.set_velocity(np.array([vx, vy, vz]), el_indx)
+        for indx, scat_en in enumerate(scatterings_E):
+            new_energy[:, 0] += scat_en*mass_el_scat[any_scattering][:, indx]
+
+        _make_velocities_after_scattering(electrons, new_energy, any_scattering, N_el_have_scat)
+
+def _make_velocities_after_scattering(electrons, delta_E, any_scattering, N_el_have_scat):
+
+    vec = np.random.normal(0, 1, (N_el_have_scat, 3))
+    
+    norms = np.linalg.norm(vec, axis=1, keepdims=True)
+    unit_vectors = vec / norms
+    energy = electrons.get_E(any_scattering).reshape(-1, 1) + delta_E
+    module_vel = 1e-3*np.sqrt(energy*2*EV_CONST/(electrons.get_effective_mass()*M_E))
+    electrons.set_velocity(module_vel*unit_vectors, any_scattering)
 
 def make_initial_veloicity(electrons, energy):
 
-    vec = np.random.normal(0, 1, (electrons.get_N_el_in_ar(), 3))
+    vec = np.random.normal(0, 1, (electrons.get_N_el(), 3))
     
-    # Нормализуем каждый вектор к длине 1
     norms = np.linalg.norm(vec, axis=1, keepdims=True)
     unit_vectors = vec / norms
 
@@ -67,10 +69,8 @@ def make_initial_veloicity(electrons, energy):
 
     electrons.set_velocity(module_vel*unit_vectors)
 
-def transport_process(electrons, dt, scatterings_l_e_e, scatterings_E_l_e_e):
+def transport_process(electrons, dt, scatterings_l_e_e, scatterings_E):
 
     _make_new_coor(electrons, dt)
-    
-    for indx_el in range(electrons.get_N_el_in_ar()):
-        _make_scatterings(electrons, indx_el, dt, scatterings_l_e_e, scatterings_E_l_e_e)
+    _make_scatterings(electrons, dt, scatterings_l_e_e, scatterings_E)
 

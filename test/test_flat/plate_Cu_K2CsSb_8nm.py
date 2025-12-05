@@ -26,9 +26,9 @@ def plot_spectrum():
 
     way_to_en_DOS = r'G:\kintech\Diplom\mat_prop\data\K2CsSb\K2CsSb_DOS.csv'
 
-    N_subsims = 100
-    N_el_in_subsim = 100
-    N_iterations = 20000
+    N_subsims = 200
+    N_el_in_subsim = 50
+    N_iterations = 40000
     E_g = 1.1 #band gap
     E_a = 0.7 #electron afinity
     delta_E = 0.027 #ev, phonon energy
@@ -50,14 +50,14 @@ def plot_spectrum():
 
     geom = Geometry.ConvexShape()
 
-    plane_cathode = Geometry.Plane(np.array([0, 0, 0.512-h]), np.array([0, 0, -1]), 'True')
+    plane_cathode = Geometry.Plane(np.array([0, 0, 0.512-h]), np.array([0, 0, -1]), 'plane_cathode')
     plane_down = Geometry.Plane(np.array([0, 0, 0.512]), np.array([0, 0, 1]), 'plane_down')
 
     geom.add_plane(plane_cathode, STATUS['Exit'])
     geom.add_plane(plane_down, STATUS['Died'])
 
     for i, gamma_cur in enumerate(cases):
-        #if i != 0: continue
+        if i != 0: continue
         print(f'gamma_cur = {gamma_cur}')
         
         coor_DOS = cases[gamma_cur]['Distr_box']

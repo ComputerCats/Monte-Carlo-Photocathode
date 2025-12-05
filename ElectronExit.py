@@ -35,7 +35,7 @@ def exit_process(geom, electrons, semiconductor):
     N_exit  = 0
     emmitance = 0
 
-    N_el_sub_sim = electrons.get_N_el_in_ar()
+    N_el_sub_sim = electrons.get_N_el()
 
     for indx_el in range(N_el_sub_sim):
 

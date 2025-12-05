@@ -103,7 +103,7 @@ class Simulation:
         electrons = self._initial_process_electron()
 
         for i in range(self.N_iterations): #time
-            #print(f'E = {electrons.get_E(0)}')
+
             electrons.kill_low_energy_electron(self.kill_energy)
             if electrons.is_end(): break
 

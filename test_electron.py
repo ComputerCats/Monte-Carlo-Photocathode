@@ -24,7 +24,9 @@ class TestElectronsInitialization(unittest.TestCase):
         
         self.assertEqual(electrons.N_el_in_array, N)
         self.assertEqual(electrons.coor.shape, (N, 7))
-        np.testing.assert_array_equal(electrons.coor, np.zeros((N, 7)))
+        ref = np.zeros((N, 7))
+        ref[:, -1] += 1
+        np.testing.assert_array_equal(electrons.coor, ref)
     
     def test_init_zero_or_negative(self):
         with pytest.raises(ValueError, match='N_el_in_array must be greater than zero'):
@@ -240,13 +242,13 @@ class TestElectronsFlags(unittest.TestCase):
     
     def test_kill_electron(self):
         self.electrons.kill_electron(2)
-        self.assertEqual(self.electrons.coor[2, -1], 1)
+        self.assertEqual(self.electrons.coor[2, -1], 0)
         self.assertFalse(self.electrons.is_alive(2))
     
     def test_is_alive(self):
 
-        self.electrons.set_flags(0, indx_el=0)
-        self.electrons.set_flags(1, indx_el=1)
+        self.electrons.set_flags(1, indx_el=0)
+        self.electrons.set_flags(0, indx_el=1)
         
         self.assertTrue(self.electrons.is_alive(0))
         self.assertFalse(self.electrons.is_alive(1))
@@ -256,7 +258,7 @@ class TestElectronsFlags(unittest.TestCase):
         self.electrons.set_flags(np.array([0, 1, 0, 1]))
         self.assertFalse(self.electrons.is_end())
         
-        self.electrons.set_flags(np.array([1, 1, 1, 1]))
+        self.electrons.set_flags(np.array([0, 0, 0, 0]))
         self.assertTrue(self.electrons.is_end())
     
     def test_kill_low_energy_electron(self):
@@ -279,7 +281,7 @@ class TestElectronsFlags(unittest.TestCase):
         self.electrons.kill_low_energy_electron(kill_energy)
         
         flags = self.electrons.get_flags()
-        expected = np.array([1, 0, 1]) 
+        expected = np.array([0, 1, 0]) 
         np.testing.assert_array_equal(flags, expected)
 
 
@@ -291,7 +293,7 @@ class TestElectronsOtherMethods(unittest.TestCase):
         self.electrons.set_electron_properties(0.5)
     
     def test_get_N_el_in_ar(self):
-        self.assertEqual(self.electrons.get_N_el_in_ar(), self.N)
+        self.assertEqual(self.electrons.get_N_el(), self.N)
     
     def test_get_effective_mass(self):
         self.assertEqual(self.electrons.get_effective_mass(), 0.5)
