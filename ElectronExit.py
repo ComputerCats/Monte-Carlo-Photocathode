@@ -12,45 +12,46 @@ def _p_exit(E, E_a, cos_angle):
 
     return result
 
-def is_exit(geom, electrons, semiconductor, indx_el: int) -> int:
+def is_exit(geom, electrons, semiconductor, indx_el: int, indx_out: int) -> int:
 
-    prop_exit = _p_exit(electrons.get_E(indx_el), semiconductor.get_E_a(), geom.get_cos_angle(electrons, indx_el))
+    prop_exit = _p_exit(electrons.get_E(indx_el), semiconductor.get_E_a(), geom.get_cos_angle(electrons, indx_el, indx_out))
     
     return prop_exit > np.random.rand()
 
-def _is_not_low_energy_electron(electrons, kill_energy):
+def _get_this_electron_emitance(geom, electrons, el_indx: int, out_plane_indx: int):
 
-        return electrons.get_E() > kill_energy
-
-def _get_this_electron_emitance(self, electrons, el_indx: int, out_plane_indx: int):
-
-    cos_out = self.geometry.get_cos_angle(electrons, el_indx, out_plane_indx)
+    cos_out = geom.get_cos_angle(electrons, el_indx, out_plane_indx)
 
     return electrons.get_E(el_indx)*(1-cos_out*cos_out)
 
-def exit_process(geom, electrons, semiconductor, kill_energy, N_exit, emmitance):
-    
-    # electron_status = 1 if Exit
-    # electron_status = 0 if Inside
+def _reflection_process(geom, electrons, indx_el, indx_plane):
 
-    electrons.set_electron_flags(electrons.get_electron_flags()*_is_not_low_energy_electron(electrons, kill_energy))   # low energy case
+    new_coor = geom.get_new_coors_after_reflect(electrons, indx_el, indx_plane)
+
+    electrons.set_coor(new_coor, indx_el)
+
+def exit_process(geom, electrons, semiconductor):
+
+    N_exit  = 0
+    emmitance = 0
 
     N_el_sub_sim = electrons.get_N_el_in_ar()
 
     for indx_el in range(N_el_sub_sim):
 
-        if not electrons.get_flags(indx_el):
-
-            indx_out_plane = geom.get_out_plane()
+        if electrons.is_alive(indx_el):
+            indx_out_plane = geom.get_out_plane(electrons, indx_el)
 
             if indx_out_plane > -1: # refactor it!
 
                 type_exit_plane = geom.get_type_exit_plane(indx_out_plane)
                 if type_exit_plane:
-                    if is_exit(geom, electrons, semiconductor, indx_el):
-
-                        N_exit += type_exit_plane*1
-                        emmitance += type_exit_plane*_get_this_electron_emitance(electrons, indx_el, indx_out_plane)
+                    if is_exit(geom, electrons, semiconductor, indx_el, indx_out_plane):
+                        N_exit += 1
+                        emmitance += _get_this_electron_emitance(geom, electrons, indx_el, indx_out_plane)
+                        electrons.kill_electron(indx_el)
+                    else:
+                        _reflection_process(geom, electrons, indx_el, indx_out_plane)
 
                 else:
                     electrons.kill_electron(indx_el)

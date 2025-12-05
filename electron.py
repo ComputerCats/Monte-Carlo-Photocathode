@@ -21,17 +21,20 @@ class Electrons:
 
         if N_el_in_array <= 0:
 
+            raise ValueError('N_el_in_array must be greater than zero')
+
+        if N_el_in_array <= 0:
+
             raise ValueError('N_el_in_array must be grater than zero')
 
         self.N_el_in_array = N_el_in_array
         
         self.coor = np.zeros((N_el_in_array, 7))
 
-    def set_veloicity(self, new_veloicity, indx_el = None):
+    def set_velocity(self, new_veloicity, indx_el = None):
 
         if indx_el == None:
             _check_sizes(self.N_el_in_array, new_veloicity)
-
             self.coor[:, 3:-1] = new_veloicity
         else:
             self.coor[indx_el, 3:-1] = new_veloicity
@@ -66,14 +69,14 @@ class Electrons:
 
             self.coor[indx_el, :3] = new_xcoor
 
-    def set_electron_flags(self, new_flags, indx_el = None):
+    def set_flags(self, new_flags, indx_el = None):
         if indx_el == None:
             _check_sizes(self.N_el_in_array, new_flags)
             self.coor[:, -1] = new_flags
         else:
             self.coor[indx_el, -1] = new_flags
 
-    def get_electron_flags(self, indx_el = None):
+    def get_flags(self, indx_el = None):
 
         if indx_el == None:
             return self.coor[:, -1]
@@ -86,7 +89,7 @@ class Electrons:
 
             return self.coor[:, :3]
         else:
-            self.coor[indx_el, :3]
+            return self.coor[indx_el, :3]
 
     def get_log(self):
 
@@ -96,15 +99,15 @@ class Electrons:
     
     def get_E(self, indx_el = None):
 
-        module_veloicity = self.get_module_veloicity(indx_el)
+        module_velocity = self.get_module_velocity(indx_el)
 
-        return self.effective_mass*1e6*M_E*module_veloicity*module_veloicity/(2*EV_CONST)
+        return self.effective_mass*1e6*M_E*module_velocity*module_velocity/(2*EV_CONST)
 
     def get_N_el_in_ar(self):
 
         return self.N_el_in_array
 
-    def get_module_veloicity(self, indx_el = None):
+    def get_module_velocity(self, indx_el = None):
         if indx_el == None:
             vx = self.coor[:, 3]
             vy = self.coor[:, 4]
@@ -117,7 +120,7 @@ class Electrons:
         
         return np.sqrt(vx*vx + vy*vy + vz*vz)
 
-    def get_veloicity_vector(self, indx_el = None):
+    def get_velocity(self, indx_el = None):
 
         if indx_el == None:
 
@@ -144,19 +147,35 @@ class Electrons:
 
         self.coor[:, :3] += shift
 
-    def add_energy(self, E):
-        _check_sizes(self.N_el_in_array, E)
+    def add_energy(self, E, indx_el = None):
 
-        el_energy = self.get_E()
+        if indx_el == None:
+            _check_sizes(self.N_el_in_array, E)
 
-        self.coor[3:-1] = np.sqrt((el_energy + E)/el_energy)*self.coor[3:-1]
+            el_energy = self.get_E()
+            new_vel = (np.sqrt((el_energy + E)/el_energy)).reshape(-1, 1)*self.get_velocity()
+            self.set_velocity(new_vel)
+            
+        else:
+            el_energy = self.get_E(indx_el)
+            new_vel = np.sqrt((el_energy + E)/el_energy)*self.get_velocity(indx_el)
+            self.set_velocity(new_vel, indx_el)
+
+    def kill_low_energy_electron(self, kill_energy):
+        res = np.where(self.get_E() > kill_energy, self.get_flags(), 1)
+        self.set_flags(res)
 
     def is_end(self):
 
         return np.all(self.coor[:, -1] == 1)
 
     def kill_electron(self, indx_el):
-        self.coor[indx_el, -1] = 0
+        self.coor[indx_el, -1] = 1
+
+    def is_alive(self, indx_el):
+
+        return self.coor[indx_el, -1] == 0
+
 
 
 

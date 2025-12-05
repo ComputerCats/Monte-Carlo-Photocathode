@@ -103,9 +103,9 @@ class TestConvexShape(unittest.TestCase):
         elex.exit_process(self.geom, single_electron1, self.semiconductor, kill_energy)
 
         vel[2] = -vel[2]
-        print(single_electron1.get_veloicity_vector())
+        print(single_electron1.get_veloicity())
         print(vel)
-        self.assertEqual(single_electron1.get_veloicity_vector() == vel, True)
+        self.assertEqual(single_electron1.get_veloicity() == vel, True)
         
 
 if __name__ == '__main__':

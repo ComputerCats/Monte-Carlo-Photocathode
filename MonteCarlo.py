@@ -4,12 +4,10 @@ import electron
 import ElectronExit
 import log
 
-EXIT_STATUS= ElectronExit.EXIT_PROCESS_STATUS
+def make_console_log(i, exited_electrons, N_sub_sims, N_el_in_subsim):
 
-def make_console_log(i, exited_electrons, initial_electrons):
-
-    print(f'Calculation progress: {100*round(i/initial_electrons, 3)} %')
-    print(f'Curr Yield: {round(exited_electrons/initial_electrons*100, 1)} %')
+    print(f'Calculation progress: {100*round(i/N_sub_sims, 3)} %')
+    print(f'Curr Yield: {round(exited_electrons/((i+1)*N_el_in_subsim)*100, 1)} %')
 
 class Simulation:
 
@@ -76,9 +74,9 @@ class Simulation:
             coor = self.coor_DOS[indx_pos,:3]
             energy = np.random.choice(self.energy_DOS[:,0], size = (self.n_electrons_in_subsim, 3), p=self.energy_DOS[:,1])
 
-            electrons.set_xcoor(np.array([coor[0], coor[1], coor[2]]))
+            electrons.set_xcoor(np.array([coor[0], coor[1], coor[2]]), indx_el)
         
-            veloicity = ElTransport.make_initial_veloicity(electrons, energy)
+        veloicity = ElTransport.make_initial_veloicity(electrons, energy)
 
         return electrons
 
@@ -88,10 +86,9 @@ class Simulation:
         self.emmitance = 0
 
         for i in range(self.N_subsim):
-
-            make_console_log(i, self.exit_electron, self.initial_N_electrons)
-
+           
             self._run_new_iteration()
+            make_console_log(i, self.exit_electron, self.N_subsim, self.n_electrons_in_subsim)
 
         self._end_experiment()
 
@@ -103,16 +100,21 @@ class Simulation:
             return 0
 
     def _run_new_iteration(self):
-        electrons = self._initial_process_electrons()
+        electrons = self._initial_process_electron()
 
         for i in range(self.N_iterations): #time
+            #print(f'E = {electrons.get_E(0)}')
+            electrons.kill_low_energy_electron(self.kill_energy)
+            if electrons.is_end(): break
 
             ElTransport.transport_process(electrons, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
-                
-            res_iter = ElectronExit.exit_process(self.geometry, electrons, self.semiconductor, self.kill_energy)
+            res_iter = ElectronExit.exit_process(self.geometry, electrons, self.semiconductor)
 
             self.exit_electron += res_iter['N_exit']
             self.emmitance += res_iter['Emmitance']
+
+            if i == self.N_iterations -1:
+                print('All time')
 
     def _add_params_to_log(self):
 
@@ -145,7 +147,7 @@ class Simulation:
     
     def get_results(self):
 
-        return self.exit_electron/self.initial_N_electrons
+        return self.exit_electron/(self.N_subsim*self.n_electrons_in_subsim)
 
     
         

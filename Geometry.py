@@ -111,15 +111,15 @@ class ConvexShape:
         point = exit_plane.get_point()
 
         curr_point = electrons.get_xcoor(el_indx)
-        prev_dir = electrons.get_veloicity(el_indx)
+        prev_dir = electrons.get_velocity(el_indx)
 
         new_dir = prev_dir - 2*np.dot(normale, prev_dir)*normale
         new_coor = curr_point - 2*np.dot(normale, curr_point - point)*normale
 
-        return np.hstack(new_coor, new_dir)
+        return np.hstack((new_coor, new_dir))
         
     def get_cos_angle(self, electrons, el_indx: int, indx_out: int): #return cos for external normal
 
-        result = np.dot(electrons.get_veloicity(el_indx), self.planes[indx_out].get_normale())/electrons.get_module_veloicity(el_indx)
+        result = np.dot(electrons.get_velocity(el_indx), self.planes[indx_out].get_normale())/electrons.get_module_velocity(el_indx)
 
         return result
