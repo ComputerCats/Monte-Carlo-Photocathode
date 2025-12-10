@@ -32,7 +32,7 @@
     <Compile Include="Geometry.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
-    <Compile Include="test_convex_shape.py">
+    <Compile Include="test_geom.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_electron.py">
@@ -42,6 +42,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_OneDGeom.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_transport.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Validation.py" />

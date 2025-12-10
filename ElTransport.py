@@ -8,7 +8,7 @@ M_E = 9.109
 
 def _make_new_coor(electrons, dt): 
 
-    indx_alive = electrons.get_flags() < 1
+    indx_alive = electrons.get_alive()
 
     l_move = electrons.get_velocity(indx_alive)*dt
 

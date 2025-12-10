@@ -7,12 +7,12 @@ def _p_exit(E, E_a, cos_angle):
     E_exit = E*cos_angle*cos_angle
 
     cond_out = (np.sqrt(E_a/E) < cos_angle) * (E_exit > E_a)
-
+    
     result = cond_out * 4*np.sqrt(E_exit*(np.abs(E_exit-E_a)))/(np.sqrt(np.abs(E_exit-E_a))+np.sqrt(E_exit))**2
-
+    
     return result
 
-def is_exit(geom, electrons, semiconductor, indx_el: int, indx_out: int) -> int:
+def is_exit(geom, electrons, semiconductor, indx_el: int, indx_out: int) -> bool:
 
     prop_exit = _p_exit(electrons.get_E(indx_el), semiconductor.get_E_a(), geom.get_cos_angle(electrons, indx_el, indx_out))
     

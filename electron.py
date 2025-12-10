@@ -161,16 +161,18 @@ class Electrons:
         else:
             return self.coor[indx_el][:, :-1]
 
+    def get_alive(self):
+
+        return self.get_flags() == 1
+
     def add_coor(self, shift, indx_el = None):
 
         if type(indx_el) == type(None): 
             _check_sizes(self.N_el_in_array, shift)
-            self.coor[:, :3] += shift
+            self.set_xcoor(self.coor[:, :3] + shift)
             return
-        if type(indx_el) == int:
-            self.coor[indx_el, :3] += shift
         else:
-            self.coor[indx_el][:, :3] += shift
+            self.set_xcoor(self.coor[indx_el, :3] + shift, indx_el)
 
     def add_energy(self, E, indx_el = None):
 
