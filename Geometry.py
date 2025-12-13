@@ -27,7 +27,7 @@ def _get_indx_min_positive_value(hs):
 
     for indx, element in enumerate(hs):
 
-        if element >= 0 and element < min_max_pos_value:
+        if element >= 0 and element <= min_max_pos_value:
 
             min_max_pos_value = element
             indx_min_max_pos_value = indx
