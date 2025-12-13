@@ -42,7 +42,7 @@ def plot_spectrum():
     h = 0.008
 
     K2CsSb = MatProp.K2CsSb_plate()
-    K2CsSb.set_fdtd_way(r'G:\kintech\Diplom\mat_prop\data\K2CsSb\plate_fdtd\8nmCu', 'Cuprum_epsilon_fdtd.txt')
+    K2CsSb.set_fdtd_way(r'G:\kintech\Diplom\mat_prop\data\K2CsSb\plate_fdtd\8nmCu\03_12_res_for_new_low_energie', 'Cuprum_epsilon_fdtd.txt', 200)
 
     cases = K2CsSb.get_coor_and_gamma_from_fdtd_for_plate(0.512)
 
@@ -57,7 +57,8 @@ def plot_spectrum():
     geom.add_plane(plane_down, STATUS['Died'])
 
     for i, gamma_cur in enumerate(cases):
-        if i != 0: continue
+        if i % 3 == 0: continue
+        if gamma_cur > 2.2 or gamma_cur < 1.858326488982508: continue
         print(f'gamma_cur = {gamma_cur}')
         
         coor_DOS = cases[gamma_cur]['Distr_box']
@@ -92,10 +93,10 @@ def plot_ready_results(file_name):
 
     with open(f'{file_name}.npy', 'rb') as f:
         result = np.load(f)
-    with open(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\spectrums\K2CsSb\plate_new\24nm\Cu\result_spectr1.npy', 'rb') as f:
+    with open(r'C:\Users\Mikhail\YandexDisk\Kintech\Projects\Science\monte-catlo\spectrums\K2CsSb\plate_new\8nm\60000\result_spectr1_2.2680105431522555.npy', 'rb') as f:
         another_result = np.load(f)
 
-    Visualization.compare_with_another_result(result, another_result, this_res_name ='8 nm', another_res_name='24 nm')
+    Visualization.compare_with_another_result(result, another_result, this_res_name ='8 nm new', another_res_name='8 nm old')
 
 def plot_this_res(file_name):
 
