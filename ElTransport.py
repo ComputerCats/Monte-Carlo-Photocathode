@@ -1,75 +1,76 @@
 import numpy as np
 
-# life of electron: (x, y, z, psi, theta, E) -> phonon scattering (change angle, change coor, change energy) -> new iter
+# life of electron: (x, y, z, vx, vy, vz, {0, 1}) -> phonon scattering (change velocity (if needed), change coor) -> new iter
 
-def get_electron_veloicity(energy, effective_mass):
+C_CONST = 2.99792458
+EV_CONST = 1.602176634
+M_E = 9.109
 
-    return 0.001*np.sqrt(energy*2*1.6/(effective_mass*9.1))
+def _make_new_coor(electrons, dt): 
 
-def make_new_coor(electron_gas, dt, effective_mass): 
+    indx_alive = electrons.get_alive()
 
-    l_E = get_electron_veloicity(electron_gas[:, -1], effective_mass)*dt
+    l_move = electrons.get_velocity(indx_alive)*dt
 
-    cos_theta_mass = np.cos(electron_gas[:, 4])
-    sin_theta_mass = np.sin(electron_gas[:, 4])
-    sin_psi_mass = np.sin(electron_gas[:, 3])
-    cos_psi_mass = np.cos(electron_gas[:, 3])
+    electrons.add_coor(l_move, indx_alive)
 
-    electron_gas[:, 0] += l_E*sin_theta_mass*cos_psi_mass
-    electron_gas[:, 1] += l_E*sin_theta_mass*sin_psi_mass
-    electron_gas[:, 2] += l_E*cos_theta_mass
+def _make_p_l_e_e(electrons, l_e_e, dt):
 
-    return electron_gas
+    p = 1 - np.exp(-electrons.get_module_velocity()*dt/l_e_e(electrons.get_E()))
 
-def _make_p_mass(E, dt, tau):
+    return p
 
-    p = 1 - np.exp(-dt/tau(E))
+def _is_scat(p):
 
-    if tau(E) <= 0:
-        
-        raise ValueError('Tau must be greater then 0')
+    return p > np.random.rand()
 
-    if p >= 1:
-        
-        raise ValueError('dt/tau must be less then 1')
+def _make_scatterings(electrons, dt, scatterings_l_e_e, scatterings_E): # TEST IT
+    
+    n_electrons = electrons.get_N_el()
+    n_scat = len(scatterings_l_e_e)
 
-    return [p, 1-p]
+    mass_el_scat = np.zeros((n_electrons, n_scat)).astype(bool)
 
-def make_scatterings(electron_gas, tau_mass, E_mass, dt):
+    for indx, l_e in enumerate(scatterings_l_e_e):
 
-    N_electrons = electron_gas[:, 0].shape[0]
-    N_tau = len(tau_mass)
+        mass_el_scat[:, indx] = _make_p_l_e_e(electrons, l_e, dt) > np.random.rand(1, n_electrons)
 
-    for i in range(N_electrons):
+    any_scattering = ((mass_el_scat*(electrons.get_flags()).astype(bool).reshape(-1, 1)).any(axis=1))
+    
+    if np.any(any_scattering):
 
-        for j in range(N_tau):
+        N_el_have_scat = len(np.where(any_scattering)[0])
+        indx_scat = np.where(any_scattering)[0]
+        new_energy = np.zeros((N_el_have_scat, 1))
 
-            p_mass = _make_p_mass(electron_gas[i, -1], dt, tau_mass[j])
+        for indx, scat_en in enumerate(scatterings_E):
+            new_energy[:, 0] += scat_en*mass_el_scat[any_scattering][:, indx]
 
-            is_scattering = np.random.choice([True, False], p = p_mass)
+        _make_velocities_after_scattering(electrons, new_energy, any_scattering, N_el_have_scat)
 
-            if is_scattering:
+def _make_velocities_after_scattering(electrons, delta_E, any_scattering, N_el_have_scat):
 
-                electron_gas[i, -1] =  electron_gas[i, -1] + E_mass[j]
+    vec = np.random.normal(0, 1, (N_el_have_scat, 3))
+    
+    norms = np.linalg.norm(vec, axis=1, keepdims=True)
+    unit_vectors = vec / norms
+    energy = electrons.get_E(any_scattering).reshape(-1, 1) + delta_E
+    module_vel = 1e-3*np.sqrt(energy*2*EV_CONST/(electrons.get_effective_mass()*M_E))
+    electrons.set_velocity(module_vel*unit_vectors, any_scattering)
 
-                electron_gas[i, :] = _make_new_dir(electron_gas[i, :])
+def make_initial_veloicity(electrons, energy):
 
-    return electron_gas
+    vec = np.random.normal(0, 1, (electrons.get_N_el(), 3))
+    
+    norms = np.linalg.norm(vec, axis=1, keepdims=True)
+    unit_vectors = vec / norms
 
-def _make_new_dir(electron_gas):
+    module_vel = 1e-3*np.sqrt(energy*2*EV_CONST/(electrons.get_effective_mass()*M_E))
 
-    electron_gas[3] = 2*np.pi*np.random.rand()
-    electron_gas[4] = np.pi*np.random.rand()
+    electrons.set_velocity(module_vel*unit_vectors)
 
-    return electron_gas
+def transport_process(electrons, dt, scatterings_l_e_e, scatterings_E):
 
-def initial_dir(electron_gas):
+    _make_new_coor(electrons, dt)
+    _make_scatterings(electrons, dt, scatterings_l_e_e, scatterings_E)
 
-    N_electrons = electron_gas.shape[0]
-
-    electron_gas[:, 3:5] = np.random.rand(N_electrons, 2)
-
-    electron_gas[:, 3] = 2*np.pi*electron_gas[:, 3]
-    electron_gas[:, 4] = np.pi*electron_gas[:, 4]
-
-    return electron_gas

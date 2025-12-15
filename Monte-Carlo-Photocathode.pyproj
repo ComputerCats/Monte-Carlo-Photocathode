@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>43270160-3dc6-49ed-aa8a-742d92b406c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>test_move.py</StartupFile>
+    <StartupFile>test_electron.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,6 +13,7 @@
     <RootNamespace>Monte-Carlo-Photocathode</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,31 +24,51 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ComplexSimulation.py" />
     <Compile Include="Distributions.py" />
     <Compile Include="electron.py" />
+    <Compile Include="ElectronExit.py" />
     <Compile Include="ElTransport.py" />
     <Compile Include="Geometry.py" />
-    <Compile Include="interface.py" />
     <Compile Include="MonteCarlo.py" />
     <Compile Include="MyScatterings.py" />
-    <Compile Include="test_tau.py">
+    <Compile Include="test_geom.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test_calc.py" />
-    <Compile Include="test_coor_dos.py" />
-    <Compile Include="test_dir.py" />
-    <Compile Include="test_energy_dos.py" />
-    <Compile Include="test_geom.py" />
-    <Compile Include="test_init_phase_prostr.py" />
-    <Compile Include="test_move.py">
+    <Compile Include="test_electron.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test_new_iter.py" />
-    <Compile Include="test_random.py">
+    <Compile Include="test_exit.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_OneDGeom.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test_transport.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Validation.py" />
     <Compile Include="Visualization.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env1\">
+      <Id>env1</Id>
+      <Version>3.10</Version>
+      <Description>env1 (Python 3.10 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+    <Interpreter Include="env\">
+      <Id>env</Id>
+      <Version>3.10</Version>
+      <Description>env (Python 3.10 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

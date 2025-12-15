@@ -1,11 +1,10 @@
 import numpy as np
-#import ivutils
-#import emtl
 import scipy.integrate as integrate
-#a geometry class for Monte Carlo simulation. a convex body is defined by the intersection of planes 
+import ElectronExit
 
-STATUS = {'Exit': 'Exit','Inside': 'Inside','Reflect': 'Reflect','~reflect': '~reflect'}
+STATUS = {'Exit': 1, 'Died': 0}
 
+'''
 def trans_sphere_to_dec_norm(psi, theta):
 
     return np.array([np.cos(psi)*np.sin(theta), np.sin(psi)*np.sin(theta), np.cos(theta)])
@@ -14,90 +13,128 @@ def L_2_norm(func, args, min_bound, max_bound):
 
     norm = integrate.quad(func, min_bound, max_bound, args = args)[0]
 
-    return norm
+    return norm'''
 
-'''
-def numpy_vector_to_emtl(vector):
+def _reflcation_process(geom, electrons, indx_electron):
 
-    result = emtl.Vector_3(vector[0], vector[1], vector[2])
+    new_coors = geom.get_new_coors_after_reflect(electrons, indx_electron)
+    electrons.set_individual_coor(new_coors['new_coor'], indx_electron)
 
-    return result
+def _get_indx_min_positive_value(hs):
 
-class BasicGeom:
-    
-    def __init__(self):
+    indx_min_max_pos_value = np.argmax(hs)
+    min_max_pos_value = hs[indx_min_max_pos_value]
 
-        self.planes = ivutils.Plane3Vector()
-        
-    def add_plane(self, plane):
+    for indx, element in enumerate(hs):
 
-        self.planes.push_back(plane)
+        if element >= 0 and element <= min_max_pos_value:
 
-    def init_polygon(self):
+            min_max_pos_value = element
+            indx_min_max_pos_value = indx
 
-        self.polygon = emtl.Polyhedron_3(self.planes)
+    return indx_min_max_pos_value
 
-    def is_in(self, point):
+class Plane:
 
-        return self.polygon.TestPoint(point)
-
-    def get_projection(self, point):
-
-        result = self.polygon.SurfProject(point)
-
-        return result
-'''
-class HalfspaceGeom:
-
-    def __init__(self, point, normale):
+    def __init__(self, point, normale, plane_name) -> None:
 
         self.point = point
         self.normale = normale
+        self.plane_name = plane_name
 
-    def get_distance(self, other_point):
+    def get_normale(self):
 
-        distance = np.dot(other_point - self.point, self.normale)
+        return self.normale
 
-        return distance
+    def get_point(self):
 
-    def is_exit(self, other_point):
+        return self.point
 
-        if other_point[2] < self.point[2]:
+    def get_distance(self, coor):
 
-            return 'Exit'
+        result = np.dot(coor - self.point, self.normale)
+        
+        return result
 
-        else: 
+    def __str__(self) -> str:
+        
+        return f'point = {self.get_point()}, normale = {self.get_normale()}, plane_name = {self.plane_name}'
 
-            return 'Inside'
+class ConvexShape:
 
-    def is_reflect(self, point):
+    def __init__(self) -> None:
+        
+        self.planes = []
+        self.work_surfaces = []
 
-        if not True:
-            return 'Reflect'
+    def add_plane(self, plane, surface_status)-> None:
+
+        self.planes.append(plane)
+
+        self.work_surfaces.append(surface_status)
+
+    def get_name(self) -> str:
+
+        return 'ConvexShape'
+
+    def get_params(self) -> str:
+
+        res_str = ''
+
+        for plane in self.planes:
+
+            res_str += f' {str(plane)}'
+
+        return res_str
+
+    def get_out_plane(self, electrons, el_indx: int) -> int:
+
+        xcoor = electrons.get_xcoor(el_indx)
+        hs = [plane.get_distance(xcoor) for plane in self.planes]
+        max_h = np.max(hs)
+
+        if max_h < 0:
+
+            return -1
+
         else:
-            return '~reflect'
 
-    #make_reflation
+            return _get_indx_min_positive_value(hs)
 
-    def reflect(self, electron_veloisity):
+    def get_type_exit_plane(self, indx_plane: int) -> int:
 
-        electron_veloisity[1] = np.pi - electron_veloisity[1]
+        if indx_plane == -1:
 
-        return electron_veloisity
+            raise ValueError('Electron inside and cannt escape')
 
-    def get_status(self, point):
+        return self.work_surfaces[indx_plane]
 
-        if self.is_reflect(point) == '~reflect':
+    def get_new_coors_after_reflect(self, electrons, el_indx: int, indx_out: int):
 
-            return self.is_exit(point)
+        if indx_out == -1:
 
-        else: 
+            raise ValueError('Electron inside and didnt scattering')
 
-            return 'Reflect'
+        exit_plane = self.planes[indx_out]
+        normale = exit_plane.get_normale()
+        point = exit_plane.get_point()
 
-    def get_cos_angle(self, electron): #return cos for external normal
+        curr_point = electrons.get_xcoor(el_indx)
+        prev_dir = electrons.get_velocity(el_indx)
 
-        angle = electron[4]
-        result = -np.cos(angle)
+        new_dir = prev_dir - 2*np.dot(normale, prev_dir)*normale
+        new_coor = curr_point - 2*np.dot(normale, curr_point - point)*normale
+
+        return np.hstack((new_coor, new_dir))
+        
+    def get_cos_angle(self, electrons, el_indx: int, indx_out: int): #return cos for external normal
+
+        module_velocity = electrons.get_module_velocity(el_indx)
+
+        if module_velocity <= 0:
+
+            raise ValueError('Module of velocity is zero')
+
+        result = np.dot(electrons.get_velocity(el_indx), self.planes[indx_out].get_normale())/module_velocity
 
         return result
