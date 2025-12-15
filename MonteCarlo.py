@@ -6,7 +6,7 @@ import log
 
 def make_console_log(i, exited_electrons, N_sub_sims, N_el_in_subsim):
 
-    print(f'Calculation progress: {100*round(i/N_sub_sims, 3)} %')
+    print(f'Calculation progress: {100*round((i+1)/N_sub_sims, 3)} %')
     print(f'Curr Yield: {round(exited_electrons/((i+1)*N_el_in_subsim)*100, 1)} %')
 
 class Simulation:
@@ -14,7 +14,7 @@ class Simulation:
     #way_to - way to save
     #way_from - way to library
 
-    def __init__(self, gamma, exp_name = ''):
+    def __init__(self, gamma, exp_name = '', sim_indx = None):
 
         self.exp_name = exp_name
 
@@ -23,6 +23,8 @@ class Simulation:
         self._init_scat_mass()
 
         self.log_exp = log.MyLog(self.exp_name)
+
+        self.sim_indx = sim_indx
 
     def _init_scat_mass(self):
 
@@ -56,6 +58,10 @@ class Simulation:
         self.scatterings_l_e_e.append(l_e_e)
         self.scatterings_E_l_e_e.append(delta_E)
 
+    def get_sim_indx(self):
+
+        return self.sim_indx
+
     def set_geometry(self, geometry):
 
         self.geometry = geometry
@@ -88,7 +94,8 @@ class Simulation:
         for i in range(self.N_subsim):
            
             self._run_new_iteration()
-            make_console_log(i, self.exit_electron, self.N_subsim, self.n_electrons_in_subsim)
+            if self.sim_indx is None:
+                make_console_log(i, self.exit_electron, self.N_subsim, self.n_electrons_in_subsim)
 
         self._end_experiment()
 
@@ -113,9 +120,10 @@ class Simulation:
             self.exit_electron += res_iter['N_exit']
             self.emmitance += res_iter['Emmitance']
 
-            if i == self.N_iterations -1:
-                print('All time')
-
+            if self.sim_indx is None:
+                if i == self.N_iterations -1:
+                    print('All time')
+                
     def _add_params_to_log(self):
 
         self.log_exp._add_str_to_log('dt', f'{self.dt}')

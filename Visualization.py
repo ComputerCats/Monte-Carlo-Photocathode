@@ -125,7 +125,7 @@ def compare_with_exp(way_to, QE, title):
     ax.set_title(title)
     ax.legend()
 
-    fig.savefig('Comparing.png')
+    fig.savefig('Comparing_2.png')
 
 def compare_with_exp_and_val(way_to_exp, QE, way_to_val):
 
