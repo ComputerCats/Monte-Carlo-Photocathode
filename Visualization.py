@@ -150,10 +150,10 @@ def compare_with_another_result(QE, another_res, this_res_name ='', another_res_
     fig, ax = plt.subplots()
 
     ax.plot(QE[:, 0], 100*QE[:, 1], label = this_res_name, color = 'blue')
-    ax.scatter(QE[:, 0], 100*QE[:, 1], color = 'blue')
+    #ax.scatter(QE[:, 0], 100*QE[:, 1], color = 'blue')
 
     ax.plot(another_res[:, 0], 100*another_res[:, 1], label = another_res_name, color = 'red')
-    ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'red')
+    #ax.scatter(another_res[:, 0], 100*another_res[:, 1], color = 'red')
 
     ax.grid()
     ax.set_xlabel('$\hbar\omega$, eV')

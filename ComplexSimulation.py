@@ -33,17 +33,32 @@ def _copy_func(f, name=None):
 
 def save_spectrum(list_of_res, file_name):
 
-    res_file = open(f'{file_name}.txt', 'w')
+    res_file_QE = open(f'{file_name}_QE.txt', 'w')
+    res_file_p_intensity = open(f'{file_name}_p_intensity.txt', 'w')
+    res_file_p_transport = open(f'{file_name}_p_transport.txt', 'w')
 
     for dict_res in list_of_res:
-        N_params = len(dict_res)
-        for indx, (param_key, value) in enumerate(dict_res):
-            if indx != N_params - 1:
-                res_file.write(f'{value}\t')
-            else:
-                res_file.write(f'{value}\n')
 
-    res_file.close()
+        res_file_QE.write(f'{dict_res['gamma']}\t{dict_res['QE']}\t{dict_res['Emmitance']}\t{dict_res['N_el_exit']}\t{dict_res['R']}\n')
+        
+        res_file_p_intensity.write(f'{dict_res['gamma']}')
+        for indx, p in enumerate(dict_res['p']):
+            if indx != len(dict_res['p']) - 1:
+                res_file_p_intensity.write(f'{p}\t')
+            else:
+                res_file_p_intensity.write(f'{p}\n')
+        
+        res_file_p_transport.write(f'{dict_res['gamma']}')
+        for indx, p in enumerate(dict_res['p_transports']):
+            if indx != len(dict_res['p']) - 1:
+                res_file_p_transport.write(f'{p}\t')
+            else:
+                res_file_p_transport.write(f'{p}\n')
+
+
+    res_file_QE.close()
+    res_file_p_intensity.close()
+    res_file_p_transport.close()
 
 def _save_exp_res(res: dict, exp_name: str):
 
