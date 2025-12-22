@@ -2,6 +2,8 @@ import numpy as np
 import Geometry
 import ElTransport as eltrans
 
+STATUS = {'Exit': 1, 'Died': 0, 'Reflect': -1}
+
 def _p_exit(E, E_a, cos_angle):
     
     E_exit = E*cos_angle*cos_angle
@@ -30,6 +32,25 @@ def _reflection_process(geom, electrons, indx_el, indx_plane):
 
     electrons.set_coor(new_coor, indx_el)
 
+def _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane: int):
+
+    N = 0
+    emmitance = 0
+
+    if type_exit_plane == STATUS['Exit']:
+        if is_exit(geom, electrons, semiconductor, indx_el, indx_out_plane):
+            N = 1
+            emmitance = _get_this_electron_emitance(geom, electrons, indx_el, indx_out_plane)
+            electrons.kill_electron(indx_el)
+        else:
+            _reflection_process(geom, electrons, indx_el, indx_out_plane)
+    if type_exit_plane == STATUS['Died']:
+        electrons.kill_electron(indx_el)
+    if type_exit_plane == STATUS['Reflect']:
+        _reflection_process(geom, electrons, indx_el, indx_out_plane)
+
+    return {'N_exit': N, 'Emmitance': emmitance}
+
 def exit_process(geom, electrons, semiconductor):
 
     N_exit  = 0
@@ -45,16 +66,9 @@ def exit_process(geom, electrons, semiconductor):
             if indx_out_plane > -1: # refactor it!
 
                 type_exit_plane = geom.get_type_exit_plane(indx_out_plane)
-                if type_exit_plane:
-                    if is_exit(geom, electrons, semiconductor, indx_el, indx_out_plane):
-                        N_exit += 1
-                        emmitance += _get_this_electron_emitance(geom, electrons, indx_el, indx_out_plane)
-                        electrons.kill_electron(indx_el)
-                    else:
-                        _reflection_process(geom, electrons, indx_el, indx_out_plane)
-
-                else:
-                    electrons.kill_electron(indx_el)
+                exit_emittance = _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane)
+                N_exit += exit_emittance['N_exit']
+                emmitance += exit_emittance['Emmitance']
 
     return {'N_exit': N_exit, 'Emmitance': emmitance}
 

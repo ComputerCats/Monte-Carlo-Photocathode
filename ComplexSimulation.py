@@ -7,6 +7,8 @@ import multiprocessing as mp
 import copy
 import types
 
+STATUS = {'Exit': 1, 'Died': 0}
+
 def _run_simulation_worker(simulation):
     simulation.run_simulation()
     return simulation
@@ -36,29 +38,44 @@ def save_spectrum(list_of_res, file_name):
     res_file_QE = open(f'{file_name}_QE.txt', 'w')
     res_file_p_intensity = open(f'{file_name}_p_intensity.txt', 'w')
     res_file_p_transport = open(f'{file_name}_p_transport.txt', 'w')
+    res_file_emmitance = open(f'{file_name}_emmitance.txt', 'w')
 
     for dict_res in list_of_res:
+        gamma = dict_res['gamma']
+        QE = dict_res['QE']
+        Emmitance = dict_res['Emmitance']
+        N_el_exit = dict_res['N_el_exit']
+        R = dict_res['R']
 
-        res_file_QE.write(f'{dict_res['gamma']}\t{dict_res['QE']}\t{dict_res['Emmitance']}\t{dict_res['N_el_exit']}\t{dict_res['R']}\n')
+        res_file_QE.write(f'{gamma}\t{QE}\t{Emmitance}\t{N_el_exit}\t{R}\n')
         
-        res_file_p_intensity.write(f'{dict_res['gamma']}')
-        for indx, p in enumerate(dict_res['p']):
-            if indx != len(dict_res['p']) - 1:
-                res_file_p_intensity.write(f'{p}\t')
+        res_file_p_intensity.write(f'{gamma}\t')
+        for indx, p_inten in enumerate(dict_res['p_intensity']):
+
+            if indx != len(dict_res['p_intensity']) - 1:
+                res_file_p_intensity.write(f'{p_inten}\t')
             else:
-                res_file_p_intensity.write(f'{p}\n')
+                res_file_p_intensity.write(f'{p_inten}\n')
         
-        res_file_p_transport.write(f'{dict_res['gamma']}')
-        for indx, p in enumerate(dict_res['p_transports']):
-            if indx != len(dict_res['p']) - 1:
-                res_file_p_transport.write(f'{p}\t')
+        res_file_p_transport.write(f'{gamma}\t')
+        for indx, p_trans in enumerate(dict_res['p_transports']):
+            if indx != len(dict_res['p_transports']) - 1:
+                res_file_p_transport.write(f'{p_trans}\t')
             else:
-                res_file_p_transport.write(f'{p}\n')
+                res_file_p_transport.write(f'{p_trans}\n')
+
+        res_file_emmitance.write(f'{gamma}\t')
+        for indx, k_em in enumerate(dict_res['part_emmitance']):
+            if indx != len(dict_res['part_emmitance']) - 1:
+                res_file_emmitance.write(f'{k_em}\t')
+            else:
+                res_file_emmitance.write(f'{k_em}\n')
 
 
     res_file_QE.close()
     res_file_p_intensity.close()
     res_file_p_transport.close()
+    res_file_emmitance.close()
 
 def _save_exp_res(res: dict, exp_name: str):
 
@@ -140,10 +157,6 @@ class Complex_Simulation:
             for sim in self.simulation_mass:
 
                 sim.run_simulation()
-
-    def get_emittance(self):
-
-        return self.final_emmitance
     
     def get_results(self):
 
@@ -165,14 +178,14 @@ class Complex_Simulation:
             p = curr_dict_param['p']
             emmitance_mass.append(curr_sim.get_emittance())  
 
-            QE += Abs*p*p_exit*1/(self.N_sim)
+            QE += Abs*p*p_exit
             N_el_exit += p_exit*self.N_subsim*self.N_el_in_subsim
 
             p_transports.append(p_exit)
             p_intensity.append(curr_dict_param['p'])
             k_quads += curr_sim.get_emittance()
 
-        emmitance = _calculate_emmitance(N_el_exit, k_quads)
+        emmitance = 1000*_calculate_emmitance(N_el_exit, k_quads)
 
         res = {'gamma': self.gamma,
               'QE': QE,

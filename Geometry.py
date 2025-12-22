@@ -2,8 +2,6 @@ import numpy as np
 import scipy.integrate as integrate
 import ElectronExit
 
-STATUS = {'Exit': 1, 'Died': 0}
-
 '''
 def trans_sphere_to_dec_norm(psi, theta):
 

@@ -99,13 +99,6 @@ class Simulation:
 
         self._end_experiment()
 
-    def _calculate_mean(self, ):
-
-        if self.exit_electron != 0:
-            return np.sqrt(self.semiconductor.get_effective_mass()*self.emmitance/self.exit_electron)*np.sqrt(3.2/(9.1*3))*1e-2
-        else:
-            return 0
-
     def _run_new_iteration(self):
         electrons = self._initial_process_electron()
 
@@ -141,17 +134,16 @@ class Simulation:
             self.log_exp._add_str_to_log('scattering ', f'delta E = {delta_E} l (0.5 ev) = {self.scatterings_l_e_e[indx](0.5)}\n')
 
         self.log_exp._add_str_to_log('QE_=_', f'{self.get_results()}')
-        self.log_exp._add_str_to_log('Emmitance_=_', f'{self.final_emmitance}')
+        self.log_exp._add_str_to_log('Emmitance_=_', f'{self.emmitance}')
 
     def _end_experiment(self):
         
-        self.final_emmitance = self._calculate_mean()
         self._add_params_to_log()
         self.log_exp.save_log()
 
     def get_emittance(self):
 
-        return self.final_emmitance
+        return self.emmitance
     
     def get_results(self):
 
