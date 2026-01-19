@@ -2,21 +2,24 @@ import numpy as np
 import Geometry
 import ElTransport as eltrans
 
-STATUS = {'Exit': 1, 'Died': 0, 'Reflect': -1}
+STATUS = Geometry.STATUS
 
-def _p_exit(E, E_a, cos_angle):
+def _p_exit(E, E_a, cos_angle, use_barrier = True):
     
     E_exit = E*cos_angle*cos_angle
 
     cond_out = (np.sqrt(E_a/E) < cos_angle) * (E_exit > E_a)
-    
-    result = cond_out * 4*np.sqrt(E_exit*(np.abs(E_exit-E_a)))/(np.sqrt(np.abs(E_exit-E_a))+np.sqrt(E_exit))**2
-    
+
+    if use_barrier:
+        
+        result = cond_out * 4*np.sqrt(E_exit*(np.abs(E_exit-E_a)))/(np.sqrt(np.abs(E_exit-E_a))+np.sqrt(E_exit))**2
+    else:
+        result = int(cond_out)
     return result
 
-def is_exit(geom, electrons, semiconductor, indx_el: int, indx_out: int) -> bool:
+def is_exit(geom, electrons, semiconductor, indx_el: int, indx_out: int, use_barrier: bool) -> bool:
 
-    prop_exit = _p_exit(electrons.get_E(indx_el), semiconductor.get_E_a(), geom.get_cos_angle(electrons, indx_el, indx_out))
+    prop_exit = _p_exit(electrons.get_E(indx_el), semiconductor.get_E_a(), geom.get_cos_angle(electrons, indx_el, indx_out), use_barrier)
     
     return prop_exit > np.random.rand()
 
@@ -32,13 +35,13 @@ def _reflection_process(geom, electrons, indx_el, indx_plane):
 
     electrons.set_coor(new_coor, indx_el)
 
-def _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane: int):
+def _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane: int, use_barrier: bool):
 
     N = 0
     emmitance = 0
 
     if type_exit_plane == STATUS['Exit']:
-        if is_exit(geom, electrons, semiconductor, indx_el, indx_out_plane):
+        if is_exit(geom, electrons, semiconductor, indx_el, indx_out_plane, use_barrier):
             N = 1
             emmitance = _get_this_electron_emitance(geom, electrons, indx_el, indx_out_plane)
             electrons.kill_electron(indx_el)
@@ -51,7 +54,7 @@ def _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out
 
     return {'N_exit': N, 'Emmitance': emmitance}
 
-def exit_process(geom, electrons, semiconductor):
+def exit_process(geom, electrons, semiconductor, use_barrier = True):
 
     N_exit  = 0
     emmitance = 0
@@ -66,7 +69,7 @@ def exit_process(geom, electrons, semiconductor):
             if indx_out_plane > -1: # refactor it!
 
                 type_exit_plane = geom.get_type_exit_plane(indx_out_plane)
-                exit_emittance = _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane)
+                exit_emittance = _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane, use_barrier)
                 N_exit += exit_emittance['N_exit']
                 emmitance += exit_emittance['Emmitance']
 

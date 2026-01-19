@@ -45,13 +45,14 @@ class Simulation:
         self.coor_DOS = coor_DOS
 
     #dt fs
-    def set_calc_params(self, dt, N_subsim, N_el_in_subsim, N_iterations, kill_energy):
+    def set_calc_params(self, dt, N_subsim, N_el_in_subsim, N_iterations, kill_energy, use_barrier = True):
 
         self.N_iterations = N_iterations
         self.kill_energy = kill_energy
         self.dt = dt
         self.N_subsim = N_subsim
         self.n_electrons_in_subsim = N_el_in_subsim
+        self.barrier_flag = use_barrier
 
     def add_l_e_e_scattering(self, l_e_e, delta_E):
 
@@ -78,7 +79,7 @@ class Simulation:
             indx_pos = np.random.choice(numbers_of_position, p=self.coor_DOS[:, -1].reshape(1, -1)[0])
 
             coor = self.coor_DOS[indx_pos,:3]
-            energy = np.random.choice(self.energy_DOS[:,0], size = (self.n_electrons_in_subsim, 3), p=self.energy_DOS[:,1])
+            energy = np.random.choice(self.energy_DOS[:,0], size = (self.n_electrons_in_subsim, 1), p=self.energy_DOS[:,1])
 
             electrons.set_xcoor(np.array([coor[0], coor[1], coor[2]]), indx_el)
         
@@ -108,7 +109,7 @@ class Simulation:
             if electrons.is_end(): break
 
             ElTransport.transport_process(electrons, self.dt, self.scatterings_l_e_e, self.scatterings_E_l_e_e)
-            res_iter = ElectronExit.exit_process(self.geometry, electrons, self.semiconductor)
+            res_iter = ElectronExit.exit_process(self.geometry, electrons, self.semiconductor, self.barrier_flag)
 
             self.exit_electron += res_iter['N_exit']
             self.emmitance += res_iter['Emmitance']

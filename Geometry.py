@@ -1,17 +1,6 @@
 import numpy as np
-import scipy.integrate as integrate
-import ElectronExit
 
-'''
-def trans_sphere_to_dec_norm(psi, theta):
-
-    return np.array([np.cos(psi)*np.sin(theta), np.sin(psi)*np.sin(theta), np.cos(theta)])
-
-def L_2_norm(func, args, min_bound, max_bound):
-
-    norm = integrate.quad(func, min_bound, max_bound, args = args)[0]
-
-    return norm'''
+STATUS = {'Exit': 1, 'Died': 0, 'Reflect': -1}
 
 def _reflcation_process(geom, electrons, indx_electron):
 
