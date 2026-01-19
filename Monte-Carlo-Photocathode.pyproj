@@ -41,9 +41,6 @@
     <Compile Include="test_exit.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="test_OneDGeom.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="test_transport.py">
       <SubType>Code</SubType>
     </Compile>
