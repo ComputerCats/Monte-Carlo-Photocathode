@@ -33,7 +33,13 @@ class Electrons:
 
         self.coor[:, -1] = 1
 
+        self._velocity_cache = None
+        self._energy_cache = None
+        self._cache_valid = False
+
     def set_velocity(self, new_veloicity, indx_el = None):
+
+        self._cache_valid = False
 
         if type(indx_el) == type(None):
             _check_sizes(self.N_el_in_array, new_veloicity)
@@ -92,6 +98,12 @@ class Electrons:
 
             self.coor[:, -1][indx_el] = new_flags
 
+    def _update_cache(self):
+
+        module_velocity = self.get_module_velocity()
+        self._energy_cache = self.effective_mass * 1e6 * M_E * module_velocity**2 / (2 * EV_CONST)
+        self._cache_valid = True
+
     def get_flags(self, indx_el = None):
 
         if type(indx_el) == type(None):
@@ -119,9 +131,11 @@ class Electrons:
     
     def get_E(self, indx_el = None):
 
-        module_velocity = self.get_module_velocity(indx_el)
-
-        return self.effective_mass*1e6*M_E*module_velocity*module_velocity/(2*EV_CONST)
+        if not self._cache_valid:
+            self._update_cache()
+        if indx_el is None:
+            return self._energy_cache
+        return self._energy_cache[indx_el]
 
     def get_N_el(self):
 
@@ -131,10 +145,7 @@ class Electrons:
 
         v = self.get_velocity(indx_el)
         
-        if len(v.shape) == 1:
-            return np.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
-        else:
-            return np.sqrt(v[:, 0]*v[:, 0] + v[:, 1]*v[:, 1] + v[:, 2]*v[:, 2])
+        return np.linalg.norm(v, axis=-1 if v.ndim > 1 else 0)
 
     def get_velocity(self, indx_el = None):
 

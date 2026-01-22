@@ -11,7 +11,6 @@ def _p_exit(E, E_a, cos_angle, use_barrier = True):
     cond_out = (np.sqrt(E_a/E) < cos_angle) * (E_exit > E_a)
 
     if use_barrier:
-        
         result = cond_out * 4*np.sqrt(E_exit*(np.abs(E_exit-E_a)))/(np.sqrt(np.abs(E_exit-E_a))+np.sqrt(E_exit))**2
     else:
         result = int(cond_out)
