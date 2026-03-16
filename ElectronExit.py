@@ -53,12 +53,14 @@ def _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out
 
     return {'N_exit': N, 'Emmitance': emmitance}
 
-def exit_process(geom, electrons, semiconductor, use_barrier = True):
+def exit_process(geom, electrons, semiconductor, use_barrier, is_save_xy_coor):
 
     N_exit  = 0
     emmitance = 0
 
     N_el_sub_sim = electrons.get_N_el()
+
+    xy_mass = []
 
     for indx_el in range(N_el_sub_sim):
 
@@ -68,11 +70,15 @@ def exit_process(geom, electrons, semiconductor, use_barrier = True):
             if indx_out_plane > -1: # refactor it!
 
                 type_exit_plane = geom.get_type_exit_plane(indx_out_plane)
-                exit_emittance = _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane, use_barrier)
-                N_exit += exit_emittance['N_exit']
-                emmitance += exit_emittance['Emmitance']
+                exit_params = _apply_boundary_conditions(electrons, indx_el, geom, semiconductor, indx_out_plane, type_exit_plane, use_barrier)
+                N_exit += exit_params['N_exit']
+                emmitance += exit_params['Emmitance']
 
-    return {'N_exit': N_exit, 'Emmitance': emmitance}
+                if is_save_xy_coor and N_exit != 0:
+
+                    xy_mass.append(electrons.get_xcoor(indx_el))
+
+    return {'N_exit': N_exit, 'Emmitance': emmitance, 'xy_mass': xy_mass}
 
             
 

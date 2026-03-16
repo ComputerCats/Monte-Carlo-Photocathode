@@ -105,6 +105,7 @@ class Complex_Simulation:
         self.N_sim = N_sim
         self.exp_name = exp_name
         self.parallel_flag = parallel_flag
+        self.is_save_xy_coor = False
 
         for i in range(N_sim):
             if parallel_flag:
@@ -119,15 +120,36 @@ class Complex_Simulation:
             semiconductor_name_temp = copy.deepcopy(semiconductor_name)
             sim.set_semiconductor(semiconductor_name_temp, semiconductor_temp)
 
-    def set_calc_params(self, dt, N_subsim, N_el_in_subsim, N_iterations, kill_energy):
+    def _init_N_el(self, N_el):
+        
+        N = self.mass_dict
+        self.N_el_all = 0
+        p_summ = 0
 
-        self.N_subsim = N_subsim
-        self.N_el_in_subsim = N_el_in_subsim
-        self.N_el = len(self.simulation_mass)*self.N_subsim*self.N_el_in_subsim
+        for indx in range(len(self.mass_dict)):
 
-        for sim in self.simulation_mass:
+            p_summ += self.mass_dict[indx]['p']
 
-            sim.set_calc_params(dt, N_subsim, N_el_in_subsim, N_iterations, kill_energy)
+        self.N_el_mass = []
+
+        for indx in range(len(self.mass_dict)):
+
+            N_el_for_sim = int(self.mass_dict[indx]['p']/p_summ*N_el)
+
+            if N_el_for_sim <= 0:
+
+                raise ValueError('N_el_for_sim <= 0')
+
+            self.N_el_all += N_el_for_sim
+            self.N_el_mass.append(N_el_for_sim)
+
+    def set_calc_params(self, dt, N_el, N_iterations, kill_energy, N_el_in_subsim = 1000):
+
+        self._init_N_el(N_el)
+
+        for indx, sim in enumerate(self.simulation_mass):
+
+            sim.set_calc_params(dt, self.N_el_mass[indx], N_iterations, kill_energy, N_el_in_subsim)
 
     def set_sim_params(self, mass_dict_params: list, energy_DOS):
 
@@ -148,6 +170,14 @@ class Complex_Simulation:
         for sim in self.simulation_mass:
 
             sim.add_l_e_e_scattering(_copy_func(scat_func), delta_E)
+
+    def set_save_xy_coor(self):
+
+        self.is_save_xy_coor = True
+
+        for sim in self.simulation_mass:
+
+                sim.set_save_xy_coor()
 
     def run_simulation(self):
 
@@ -173,13 +203,14 @@ class Complex_Simulation:
 
             curr_sim = self.simulation_mass[indx]
             curr_dict_param = self.mass_dict[indx]
-            p_exit = curr_sim.get_results()
+            res_sim = curr_sim.get_results()
+            p_exit = res_sim['P transport']
             Abs = (1-curr_dict_param['R'])
             p = curr_dict_param['p']
             emmitance_mass.append(curr_sim.get_emittance())  
 
             QE += Abs*p*p_exit
-            N_el_exit += p_exit*self.N_subsim*self.N_el_in_subsim
+            N_el_exit += res_sim['N photoelectrons']
 
             p_transports.append(p_exit)
             p_intensity.append(curr_dict_param['p'])
@@ -197,6 +228,12 @@ class Complex_Simulation:
              'part_emmitance': emmitance_mass}
 
         _save_exp_res(res, self.exp_name)
+
+        if self.is_save_xy_coor:
+
+            for indx_sim in range(self.N_sim):
+
+                self.simulation_mass[indx_sim].save_xy_mass(f'xy_distribution_indx_box={indx_sim}')
 
         return res
 

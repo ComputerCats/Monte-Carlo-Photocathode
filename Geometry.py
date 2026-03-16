@@ -2,11 +2,6 @@ import numpy as np
 
 STATUS = {'Exit': 1, 'Died': 0, 'Reflect': -1}
 
-def _reflcation_process(geom, electrons, indx_electron):
-
-    new_coors = geom.get_new_coors_after_reflect(electrons, indx_electron)
-    electrons.set_individual_coor(new_coors['new_coor'], indx_electron)
-
 def _get_indx_min_positive_value(hs):
 
     indx_min_max_pos_value = np.argmax(hs)
